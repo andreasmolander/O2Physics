@@ -13,6 +13,7 @@
 /// \author Andreas Molander andreas.molander@cern.ch
 /// \brief  FV0 QA
 
+<<<<<<< Updated upstream
 #include <bitset>
 #include <cstddef>
 #include <cstdint>
@@ -24,6 +25,10 @@
 #include "Common/DataModel/Multiplicity.h"
 
 #include "CommonConstants/LHCConstants.h"
+=======
+#include "Common/DataModel/EventSelection.h"
+#include "Common/DataModel/Multiplicity.h"
+>>>>>>> Stashed changes
 #include "DataFormatsFIT/Triggers.h"
 #include "Framework/AnalysisDataModel.h"
 #include "Framework/AnalysisTask.h"
@@ -33,12 +38,19 @@
 #include "Framework/runDataProcessing.h"
 
 #include "TH1F.h"
+<<<<<<< Updated upstream
 #include "TH2F.h"
+=======
+
+#include <bitset>
+#include <cstdint>
+>>>>>>> Stashed changes
 
 using namespace o2;
 using namespace o2::framework;
 
 struct fv0Qa {
+<<<<<<< Updated upstream
   // Constants
   constexpr static std::size_t sMaxBC = o2::constants::lhc::LHCMaxBunches;
 
@@ -199,10 +211,57 @@ struct fv0Qa {
     makeConditionHistos(kTriggersCorrelationFV0, kTH2I, {axisTriggersFV0, axisTriggersFV0});
     makeConditionHistos(kContributors, kTH1I, {axisContributors});
 
+=======
+  HistogramRegistry histos{"Histos"};
+
+  void init(InitContext&)
+  {
+    const AxisSpec axisStats{ 10, 0, 11, "" };
+    const AxisSpec axisBC{ 3564, 0, 3565, "BC" };
+    const AxisSpec axisNContributors{ 5000, 0, 5001, "# contributors" };
+    const AxisSpec axisADC{ 4095, 0, 4096, "Amplitude (ADC channel)" };
+    const AxisSpec axisADCSum{ 4095, 0, 4096 * 100, "Total amplitude (ADC channel)" };
+    const AxisSpec axisMultiplicity{ 200000, 0, 200001, "Multiplicity (?)" };
+    const AxisSpec axisTimeNS{ 500, -5, 5, "Time (ns)" }; // TODO: check
+    const AxisSpec axisChannels{ 49, 0, 50, "Channel" };
+
+    // Histogram for storing event selection statistics
+    auto h = histos.add<TH1>("EventSelectionStats", "Event selection statistics", kTH1F, { axisStats });
+    // auto h = histos.get<TH1F>(HIST("EventSelectionStats"));
+    h->GetXaxis()->SetBinLabel(1, "Events read");
+    h->GetXaxis()->SetBinLabel(2, "sel8");
+    h->GetXaxis()->SetBinLabel(3, "Has FV0");
+    h->GetXaxis()->SetBinLabel(4, "OrA");
+    h->GetXaxis()->SetBinLabel(5, "NChan");
+    h->GetXaxis()->SetBinLabel(6, "Charge");
+    h->GetXaxis()->SetBinLabel(7, "AIn");
+    h->GetXaxis()->SetBinLabel(8, "AOut");
+
+// Macro for creating one histogram per condition, for one 'observable'
+#define MakeTriggerHistos(observable, ...)                               \
+  histos.add(observable "/NoCut",  "FV0 " observable " (no cut)", __VA_ARGS__); \
+  histos.add(observable "/Sel8",   "FV0 " observable " (sel8)",   __VA_ARGS__); \
+  histos.add(observable "/OrA",    "FV0 " observable " (OrA)",    __VA_ARGS__); \
+  histos.add(observable "/NChan",  "FV0 " observable " (NChan)",  __VA_ARGS__); \
+  histos.add(observable "/Charge", "FV0 " observable " (Charge)", __VA_ARGS__); \
+  histos.add(observable "/AIn",    "FV0 " observable " (AIn)",    __VA_ARGS__); \
+  histos.add(observable "/AOut",   "FV0 " observable " (AOut)",   __VA_ARGS__);
+
+    MakeTriggerHistos("EventsVsBC", kTH1I, { axisBC });
+    MakeTriggerHistos("Amplitudes", kTH1F, { axisADC });             // Amplitude as ADC channels is stored as float in AO2D
+    MakeTriggerHistos("TotalAmplitudes", kTH1F, { axisADCSum });     // Amplitude as ADC channels is stored as float in AO2D
+    MakeTriggerHistos("Time", kTH1F, { axisTimeNS });
+    MakeTriggerHistos("FiredChannels", kTH1I, { axisChannels });
+    MakeTriggerHistos("Contributors", kTH1I, { axisNContributors });
+    MakeTriggerHistos("Multiplicity", kTH1F, { axisMultiplicity });  // Multiplicity as ??? is stored as float in AO2D
+
+#undef MakeTriggerHistos
+>>>>>>> Stashed changes
   } // init
 
   void process(soa::Join<aod::Collisions, aod::EvSels, aod::Mults>::iterator const& collision, aod::FV0As const&, aod::BCs const&)
   {
+<<<<<<< Updated upstream
     histograms.fill(HIST("EventSelectionStats"), kAll);
 
     const int nContributors = collision.numContrib();
@@ -413,6 +472,96 @@ struct fv0Qa {
 
 #undef FillConditionHistograms
 #undef FillConditionSumHistograms
+=======
+    histos.fill(HIST("EventSelectionStats"), 1);
+
+    int nContributors = collision.numContrib();
+    float multiplicity = collision.multFV0A();
+    auto bc = collision.bc_as<aod::BCs>();
+    int localBC = bc.globalBC() % o2::constants::lhc::LHCMaxBunches;
+
+    bool sel8 = collision.sel8();
+
+    bool trgOrA = false;
+    bool trgNChan = false;
+    bool trgCharge = false;
+    bool trgAIn = false;
+    bool trgAOut = false;
+
+    if (sel8) histos.fill(HIST("EventSelectionStats"), 2);
+
+    if (collision.has_foundFV0()) {
+      histos.fill(HIST("EventSelectionStats"), 3);
+
+      auto fv0 = collision.foundFV0();
+      
+      int nFiredChannels = fv0.channel().size();
+      std::bitset<8> triggers = fv0.triggerMask();
+      
+      trgOrA = triggers[o2::fit::Triggers::bitA];
+      trgNChan = triggers[o2::fit::Triggers::bitTrgNchan];
+      trgCharge = triggers[o2::fit::Triggers::bitTrgCharge];
+      trgAIn = triggers[o2::fit::Triggers::bitAIn];
+      trgAOut = triggers[o2::fit::Triggers::bitAOut];
+
+      if (trgOrA)    histos.fill(HIST("EventSelectionStats"), 4);
+      if (trgNChan)  histos.fill(HIST("EventSelectionStats"), 5);
+      if (trgCharge) histos.fill(HIST("EventSelectionStats"), 6);
+      if (trgAIn)    histos.fill(HIST("EventSelectionStats"), 7);
+      if (trgAOut)   histos.fill(HIST("EventSelectionStats"), 8);
+
+      // Sum of amplitudes per condition
+      float totalAmplitudes[7] = { 0, 0, 0, 0, 0, 0, 0 };
+
+// Macro for filling histograms for 'observable' based on conditions
+#define FillTriggerHistos(observable, ...)                             \
+  histos.fill(HIST(observable "/NoCut"), __VA_ARGS__);                 \
+  if (sel8)      histos.fill(HIST(observable "/Sel8"),          __VA_ARGS__); \
+  if (trgOrA)    histos.fill(HIST(observable "/OrA"),    __VA_ARGS__); \
+  if (trgNChan)  histos.fill(HIST(observable "/NChan"),  __VA_ARGS__); \
+  if (trgCharge) histos.fill(HIST(observable "/Charge"), __VA_ARGS__); \
+  if (trgAIn)    histos.fill(HIST(observable "/AIn"),    __VA_ARGS__); \
+  if (trgAOut)   histos.fill(HIST(observable "/AOut"),   __VA_ARGS__);
+
+// Macro for filling histograms for 'observable' with sums (__VA_ARGS__) calculated based on conditions
+#define FillTriggerSumHistos(observable, ...)              \
+  histos.fill(HIST(observable "/NoCut"),  __VA_ARGS__[0]); \
+  histos.fill(HIST(observable "/OrA"),    __VA_ARGS__[1]); \
+  histos.fill(HIST(observable "/NChan"),  __VA_ARGS__[2]); \
+  histos.fill(HIST(observable "/Charge"), __VA_ARGS__[3]); \
+  histos.fill(HIST(observable "/AIn"),    __VA_ARGS__[4]); \
+  histos.fill(HIST(observable "/AOut"),   __VA_ARGS__[5]);
+
+      // Lambda for filling array of sums based on conditions
+      auto const sum = [&](float *sums, float value) {
+        sums[0] += value;
+        if (sel8)      sums[1] += value;
+        if (trgOrA)    sums[2] += value;
+        if (trgNChan)  sums[3] += value;
+        if (trgCharge) sums[4] += value;
+        if (trgAIn)    sums[5] += value;
+        if (trgAOut)   sums[6] += value;
+      };
+
+      for (const auto& amplitude : fv0.amplitude()) {
+        FillTriggerHistos("Amplitudes", amplitude);
+        sum(totalAmplitudes, amplitude);
+      }
+      
+      FillTriggerSumHistos("TotalAmplitudes", totalAmplitudes);
+
+      FillTriggerHistos("Time", fv0.time());
+      FillTriggerHistos("FiredChannels", nFiredChannels);
+      
+    } // if (collision.has_foundFV0())
+
+    FillTriggerHistos("EventsVsBC", localBC);
+    FillTriggerHistos("Contributors", nContributors);
+    FillTriggerHistos("Multiplicity", multiplicity);
+
+#undef FillTriggerHistos
+#undef FillTriggerSumHistos
+>>>>>>> Stashed changes
   } // process
 };
 

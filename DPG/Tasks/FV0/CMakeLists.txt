@@ -9,7 +9,14 @@
 # granted to it by virtue of its status as an Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
+<<<<<<< Updated upstream
 o2physics_add_dpl_workflow(fv0-qa
                            SOURCES qaFV0.cxx
                            PUBLIC_LINK_LIBRARIES O2Physics::DataModel O2::Framework
+=======
+
+o2physics_add_dpl_workflow(fv0-qa
+                           SOURCES qaFV0.cxx
+                           PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsBase
+>>>>>>> Stashed changes
                            COMPONENT_NAME Analysis)
