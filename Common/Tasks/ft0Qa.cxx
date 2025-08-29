@@ -375,7 +375,7 @@ struct ft0QaTask {
         histos.fill(HIST("hT0res_nContrib"), collision.t0resolution(), nContrib);
         histos.fill(HIST("hT0res_MultT0AC"), collision.t0resolution(), multFT0M);
         histos.fill(HIST("hT0vertexDiff"), ft0.posZ() - collision.posZ());
-        histos.fill(HIST("hT0vertexDiff_vs_nContrib"),ft0.posZ() - collision.posZ(), nContrib);
+        histos.fill(HIST("hT0vertexDiff_vs_nContrib"), ft0.posZ() - collision.posZ(), nContrib);
         histos.fill(HIST("hT0vertexDiff_vs_MultT0AC"), ft0.posZ() - collision.posZ(), multFT0M);
 
         if (nContrib > 20) {
