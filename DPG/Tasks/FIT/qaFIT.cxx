@@ -97,6 +97,10 @@ struct fitQa {
   static constexpr float vtxMinFDD = -60.;
   static constexpr float vtxMaxFDD = 60.;
 
+  static constexpr int nBinsTotAmpl = 10000;
+  static constexpr float totAmplMin = 0.;
+  static constexpr float totAmplMax = 100000.;
+
   /* Helper functions */
   static float cm2ns(float cm) { return cm / o2::constants::physics::LightSpeedCm2NS; }
   static float ns2cm(float ns) { return ns * o2::constants::physics::LightSpeedCm2NS; }
@@ -173,11 +177,13 @@ struct fitQa {
   OutputObj<TH2F> ooFT0TimeRes{"FT0TimeRes"};     ///< FT0 collision time resolution (ns)
   OutputObj<TH2F> ooFT0Vtx{"FT0Vtx"};             ///< FT0 vertex (cm)
   OutputObj<TH2F> ooFT0VtxNS{"FT0VtxNS"};         ///< FT0 vertex (ns)
+  OutputObj<TH2F> ooFT0TotAmpl{"FT0TotAmpl"};     ///< FT0 total amplitude (ADC)
 
   // FV0
   OutputObj<TH2F> ooFV0Time{"FV0Time"};                     ///< FV0 average time (ns)
   OutputObj<TH2F> ooFV0TimeCorr{"FV0TimeCorr"};             ///< PV corrected FV0 average time (ns)
   OutputObj<TH2F> ooPVFV0FT0CVtxDiffNS{"PVFV0FT0CVtxDiff"}; ///< PV - FV0-FT0C vertex (ns)
+  OutputObj<TH2F> ooFV0TotAmpl{"FV0TotAmpl"};               ///< FV0 total amplitude (ADC)
 
   // FDD
   OutputObj<TH2F> ooFDDTimeA{"FDDTimeA"};             ///< FDDA average time (ns)
@@ -188,6 +194,7 @@ struct fitQa {
   OutputObj<TH2F> ooFDDVtx{"FDDVtx"};                 ///< FDD vertex (cm)
   OutputObj<TH2F> ooFDDVtxNS{"FDDVtxNS"};             ///< FDD vertex (ns)
   OutputObj<TH2F> ooPVFDDVtxDiffNS{"PVFDDVtxDiffNS"}; ///< PV - FDD vertex (ns)
+  OutputObj<TH2F> ooFDDTotAmpl{"FDDTotAmpl"};         ///< FDD total amplitude (ADC)
 
   // FT0, FV0
   OutputObj<TH2F> ooFT0TimeFV0TimeDiff{"FT0TimeFV0TimeDiff"};   ///< FT0 collision time - FV0 average time (ns)
@@ -371,6 +378,39 @@ struct fitQa {
 
     ooFT0VtxFDDVtxDiffNS.setObject(new TH2F(ooFT0VtxFDDVtxDiffNS.label.c_str(), "FT0 vertex - FDD vertex;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 - (\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (ns)}$", nBinsTResFDD, tResMinFDD, tResMaxFDD, conditions.size(), 0, conditions.size()));
     objs[&ooFT0VtxFDDVtxDiffNS] = [&]() { return objs[&ooFT0VtxNS]() - objs[&ooFDDVtxNS](); };
+
+    ooFT0TotAmpl.setObject(new TH2F(ooFT0TotAmpl.label.c_str(), "FT0 total amplitude;FT0 amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFT0TotAmpl] = [&]() { 
+      float totAmpl = 0.f;
+      for (const auto& ampl : ft0ChAmpl) {
+        if (ampl > -100.f) {
+          totAmpl += ampl;
+        }
+      }
+      return totAmpl;
+    };
+
+    ooFV0TotAmpl.setObject(new TH2F(ooFV0TotAmpl.label.c_str(), "FV0 total amplitude;FV0 amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFV0TotAmpl] = [&]() { 
+      float totAmpl = 0.f;
+      for (const auto& ampl : fv0ChAmpl) {
+        if (ampl > -100.f) {
+          totAmpl += ampl;
+        }
+      }
+      return totAmpl;
+    };
+
+    ooFDDTotAmpl.setObject(new TH2F(ooFDDTotAmpl.label.c_str(), "FDD total amplitude;FDD amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFDDTotAmpl] = [&]() { 
+      float totAmpl = 0.f;
+      for (const auto& ampl : fddChAmpl) {
+        if (ampl > -100.f) {
+          totAmpl += ampl;
+        }
+      }
+      return totAmpl;
+    };
 
     // 2D quantities
 
