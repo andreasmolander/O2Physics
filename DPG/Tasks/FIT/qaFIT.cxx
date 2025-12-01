@@ -61,6 +61,10 @@ struct fitQa {
 
   /* Common histogram properties - TODO: make configurable */
 
+  static constexpr int nBinsNContrib = 10000;
+  static constexpr float nContribMin = -0.;
+  static constexpr float nContribMax = 10000.;
+
   // Time axis limits for FT0 and FV0
   // Times are in ns, these give a resolution of 20 ps per bin
   static constexpr int nBinsT = 500;
@@ -97,9 +101,9 @@ struct fitQa {
   static constexpr float vtxMinFDD = -60.;
   static constexpr float vtxMaxFDD = 60.;
 
-  static constexpr int nBinsTotAmpl = 10000;
+  static constexpr int nBinsTotAmpl = 30000;
   static constexpr float totAmplMin = 0.;
-  static constexpr float totAmplMax = 100000.;
+  static constexpr float totAmplMax = 300000.;
 
   /* Helper functions */
   static float cm2ns(float cm) { return cm / o2::constants::physics::LightSpeedCm2NS; }
@@ -113,6 +117,7 @@ struct fitQa {
   
   // Quantities
   float pv = -200.f;                                             ///< Primary vertex position in cm (o2::aod::‌collision::PosZ)
+  int nContrib = 0;                                              ///< Number of contributors to primary vertex (o2::aod::‌collision::NumContrib)
   float ft0timeA = o2::ft0::RecPoints::sDummyCollissionTime;     ///< FT0-A average time in ns (o2::aod::ft0::TimeA)
   float ft0timeC = o2::ft0::RecPoints::sDummyCollissionTime;     ///< FT0-A average time in ns (o2::aod::ft0::TimeA)
   float ft0timeACorr = o2::ft0::RecPoints::sDummyCollissionTime; ///< FT0-A average time in ns corrected PV (o2::aod::ft0::T0ACorrected)
@@ -165,8 +170,9 @@ struct fitQa {
   OutputObj<TH1F> ooStats{"Stats"}; ///< Event selection statistics
 
   // Collision
-  OutputObj<TH2F> ooPV{"PV"};     ///< Primary vertex (cm)
-  OutputObj<TH2F> ooPVns{"PVns"}; ///< Primary vertex (ns)
+  OutputObj<TH2F> ooPV{"collPV"};             ///< Primary vertex (cm)
+  OutputObj<TH2F> ooPVns{"collPVns"};         ///< Primary vertex (ns)
+  OutputObj<TH2F> ooNcontrib{"collNcontrib"}; ///< Number of contributors
   
   // FT0
   OutputObj<TH2F> ooFT0TimeA{"FT0TimeA"};         ///< FT0A average time (ns)
@@ -210,12 +216,20 @@ struct fitQa {
   /* 2D */
   
   // FT0
-  OutputObj<TH3F> ooFT0TimeVsFT0Vtx{"FT0TimeVsFT0Vtx"}; ///< FT0 collision time vs FT0 vertex
-  OutputObj<TH3F> ooPVvsFT0Vtx{"PVvsFT0Vtx"};           ///< PV vs FT0 vertex
+  OutputObj<TH3F> ooFT0TimeVsFT0Vtx{"FT0TimeVsFT0Vtx"};           ///< FT0 collision time vs FT0 vertex
+  OutputObj<TH3F> ooPVvsFT0Vtx{"PVvsFT0Vtx"};                     ///< PV vs FT0 vertex
+  OutputObj<TH3F> ooFT0TimeResVsNContrib{"FT0TimeResVsNContrib"}; ///< FT0 time resolution vs number of contributors
+
+  // FV0
+  OutputObj<TH3F> ooPVFV0FT0CVtxDiffNSVsNContrib{"PVFV0FT0CVtxDiffNSVsNContrib"}; ///< PV - FV0-FT0C vertex vs number of contributors
 
   // FDD
-  OutputObj<TH3F> ooFDDTimeVsFDDVtx{"FDDTimeVsFDDVtx"}; ///< FDD collision time vs FDD vertex
-  OutputObj<TH3F> ooPVvsFDDVtx{"PVvsFDDVtx"};           ///< PV vs FDD vertex
+  OutputObj<TH3F> ooFDDTimeVsFDDVtx{"FDDTimeVsFDDVtx"};                   ///< FDD collision time vs FDD vertex
+  OutputObj<TH3F> ooPVvsFDDVtx{"PVvsFDDVtx"};                             ///< PV vs FDD vertex
+  OutputObj<TH3F> ooPVFDDVtxDiffNSVsNContrib{"PVFDDVtxDiffNSVsNContrib"}; ///< PV - FDD vertex vs number of contributors
+
+  // FT0, FV0
+  OutputObj<TH3F> ooFT0TimeAFV0TimeDiffVsNContrib{"FT0TimeAFV0TimeDiffVsNContrib"}; ///< FT0A average time - FV0 average time vs number of contributors
 
   /* 2D Quantities per X bin */
 
@@ -235,6 +249,7 @@ struct fitQa {
   /// Resetting all AO2D quantities and conditions to default values
   void resetVariables() {
     pv = -200.f;
+    nContrib = 0;
     ft0timeA = o2::ft0::RecPoints::sDummyCollissionTime;
     ft0timeC = o2::ft0::RecPoints::sDummyCollissionTime;
     ft0timeACorr = o2::ft0::RecPoints::sDummyCollissionTime;
@@ -299,6 +314,9 @@ struct fitQa {
 
     ooPV.setObject(new TH2F(ooPV.label.c_str(), "Primary vertex;Primary vertex z position (cm)", nBinsVtx, vtxMin, vtxMax, conditions.size(), 0, conditions.size()));
     objs[&ooPV] = [&]() { return pv; };
+
+    ooNcontrib.setObject(new TH2F(ooNcontrib.label.c_str(), "Number of contributors to primary vertex;Number of contributors to primary vertex", nBinsNContrib, nContribMin, nContribMax, conditions.size(), 0, conditions.size()));
+    objs[&ooNcontrib] = [&]() { return nContrib; };
 
     ooFT0TimeA.setObject(new TH2F(ooFT0TimeA.label.c_str(), "FT0A time;$\\langle t_{\\text{FT0A}} \\rangle \\text{ (ns)}$", nBinsT, tMin, tMax, conditions.size(), 0, conditions.size()));
     objs[&ooFT0TimeA] = [&]() { return ft0timeA; };
@@ -420,11 +438,23 @@ struct fitQa {
     ooPVvsFT0Vtx.setObject(new TH3F(ooPVvsFT0Vtx.label.c_str(), "FT0 vertex vs PV;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (cm)}$;Primary vertex z position (cm)", nBinsVtx, vtxMin, vtxMax, nBinsVtx, vtxMin, vtxMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooPVvsFT0Vtx] = [&]() { return std::make_pair(objs[&ooFT0Vtx](), objs[&ooPV]()); };
 
+    ooFT0TimeResVsNContrib.setObject(new TH3F(ooFT0TimeResVsNContrib.label.c_str(), "FT0 time resolution vs number of contributors;Number of contributors to primary vertex;$\\text{PV} - (\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TimeResVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooFT0TimeRes]()); };
+
+    ooPVFV0FT0CVtxDiffNSVsNContrib.setObject(new TH3F(ooPVFV0FT0CVtxDiffNSVsNContrib.label.c_str(), "PV - FV0-FT0C vertex vs number of contributors;Number of contributors to primary vertex;$\\text{PV} - (\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FV0}} \\rangle)/2 \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooPVFV0FT0CVtxDiffNSVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooPVFV0FT0CVtxDiffNS]()); };
+
     ooFDDTimeVsFDDVtx.setObject(new TH3F(ooFDDTimeVsFDDVtx.label.c_str(), "FDD collision time vs FDD vertex;$(\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (cm)}$;$(\\langle t_{\\text{FDDA}} \\rangle + \\langle t_{\\text{FDDC}} \\rangle)/2 \\text{ (ns)}$", nBinsVtxFDD, vtxMinFDD, vtxMaxFDD, nBinsTFDD, tMinFDD, tMaxFDD, conditions.size(), 0, conditions.size()));
     objs2D[&ooFDDTimeVsFDDVtx] = [&]() { return std::make_pair(objs[&ooFDDVtx](), objs[&ooFDDTime]()); };
 
     ooPVvsFDDVtx.setObject(new TH3F(ooPVvsFDDVtx.label.c_str(), "PV vs FDD vertex;$(\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (cm)}$;Primary vertex z position (cm)", nBinsVtxFDD, vtxMinFDD, vtxMaxFDD, nBinsVtx, vtxMin, vtxMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooPVvsFDDVtx] = [&]() { return std::make_pair(objs[&ooFDDVtx](), objs[&ooPV]()); };
+
+    ooPVFDDVtxDiffNSVsNContrib.setObject(new TH3F(ooPVFDDVtxDiffNSVsNContrib.label.c_str(), "PV - FDD vertex vs number of contributors;Number of contributors to primary vertex;$\\text{PV} - (\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTResFDD, tResMinFDD, tResMaxFDD, conditions.size(), 0, conditions.size()));
+    objs2D[&ooPVFDDVtxDiffNSVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooPVFDDVtxDiffNS]()); };
+
+    ooFT0TimeAFV0TimeDiffVsNContrib.setObject(new TH3F(ooFT0TimeAFV0TimeDiffVsNContrib.label.c_str(), "FT0A time - FV0 time vs number of contributors;Number of contributors to primary vertex;$\\langle t_{\\text{FT0A}} \\rangle - \\langle t_{\\text{FV0}} \\rangle \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TimeAFV0TimeDiffVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooFT0TimeAFV0TimeDiff]()); };
 
     // 2D quantities per X bin
 
@@ -471,6 +501,7 @@ struct fitQa {
     hasFDD = collision.has_foundFDD();
 
     pv = collision.posZ();
+    nContrib = collision.numContrib();
     ft0timeACorr = collision.t0ACorrected();
     ft0timeCCorr = collision.t0ACorrected();
     ft0timeRes = collision.t0resolution();
