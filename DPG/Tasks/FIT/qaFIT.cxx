@@ -31,6 +31,7 @@
 #include <TH1F.h>
 #include <TH2.h>
 #include <TH2F.h>
+#include <TH3.h>
 #include <TH3F.h>
 
 #include <array>
@@ -216,20 +217,24 @@ struct fitQa {
   /* 2D */
   
   // FT0
-  OutputObj<TH3F> ooFT0TimeVsFT0Vtx{"FT0TimeVsFT0Vtx"};           ///< FT0 collision time vs FT0 vertex
-  OutputObj<TH3F> ooPVvsFT0Vtx{"PVvsFT0Vtx"};                     ///< PV vs FT0 vertex
-  OutputObj<TH3F> ooFT0TimeResVsNContrib{"FT0TimeResVsNContrib"}; ///< FT0 time resolution vs number of contributors
+  OutputObj<TH3F> ooFT0TimeVsFT0Vtx{"FT0TimeVsFT0Vtx"};               ///< FT0 collision time vs FT0 vertex
+  OutputObj<TH3F> ooPVvsFT0Vtx{"PVvsFT0Vtx"};                         ///< PV vs FT0 vertex
+  OutputObj<TH3F> ooFT0TimeResVsNContrib{"FT0TimeResVsNContrib"};     ///< FT0 time resolution vs number of contributors
+  OutputObj<TH3F> ooFT0TimeResVsFT0TotAmpl{"FT0TimeResVsFT0TotAmpl"}; ///< FT0 time resolution vs FT0 total amplitude
 
   // FV0
-  OutputObj<TH3F> ooPVFV0FT0CVtxDiffNSVsNContrib{"PVFV0FT0CVtxDiffNSVsNContrib"}; ///< PV - FV0-FT0C vertex vs number of contributors
+  OutputObj<TH3F> ooPVFV0FT0CVtxDiffNSVsNContrib{"PVFV0FT0CVtxDiffNSvsNContrib"};     ///< PV - FV0-FT0C vertex vs number of contributors
+  OutputObj<TH3F> ooPVFV0FT0CVtxDiffNSVsFV0TotAmpl{"PVFV0FT0CVtxDiffNSvsFV0TotAmpl"}; ///< PV - FV0-FT0C vertex vs FV0 total amplitude
 
   // FDD
-  OutputObj<TH3F> ooFDDTimeVsFDDVtx{"FDDTimeVsFDDVtx"};                   ///< FDD collision time vs FDD vertex
-  OutputObj<TH3F> ooPVvsFDDVtx{"PVvsFDDVtx"};                             ///< PV vs FDD vertex
-  OutputObj<TH3F> ooPVFDDVtxDiffNSVsNContrib{"PVFDDVtxDiffNSVsNContrib"}; ///< PV - FDD vertex vs number of contributors
+  OutputObj<TH3F> ooFDDTimeVsFDDVtx{"FDDTimeVsFDDVtx"};                       ///< FDD collision time vs FDD vertex
+  OutputObj<TH3F> ooPVvsFDDVtx{"PVvsFDDVtx"};                                 ///< PV vs FDD vertex
+  OutputObj<TH3F> ooPVFDDVtxDiffNSVsNContrib{"PVFDDVtxDiffNSvsNContrib"};     ///< PV - FDD vertex vs number of contributors
+  OutputObj<TH3F> ooPVFDDVtxDiffNSVsFDDTotAmpl{"PVFDDVtxDiffNSvsFDDTotAmpl"}; ///< PV - FDD vertex vs FDD total amplitude
 
   // FT0, FV0
-  OutputObj<TH3F> ooFT0TimeAFV0TimeDiffVsNContrib{"FT0TimeAFV0TimeDiffVsNContrib"}; ///< FT0A average time - FV0 average time vs number of contributors
+  OutputObj<TH3F> ooFT0TimeAFV0TimeDiffVsNContrib{"FT0TimeAFV0TimeDiffVsNContrib"};     ///< FT0A average time - FV0 average time vs number of contributors
+  OutputObj<TH3F> ooFT0TimeAFV0TimeDiffVsFV0TotAmpl{"FT0TimeAFV0TimeDiffVsFV0TotAmpl"}; ///< FT0A average time - FV0 average time vs FV0 total amplitude
 
   /* 2D Quantities per X bin */
 
@@ -435,14 +440,20 @@ struct fitQa {
     ooFT0TimeVsFT0Vtx.setObject(new TH3F(ooFT0TimeVsFT0Vtx.label.c_str(), "FT0 time vs FT0 vertex;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (cm)}$;$(\\langle t_{\\text{FT0A}} \\rangle + \\langle t_{\\text{FT0C}} \\rangle)/2 \\text{ (ns)}$", nBinsVtx, vtxMin, vtxMax, nBinsT, tMin, tMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooFT0TimeVsFT0Vtx] = [&]() { return std::make_pair(objs[&ooFT0Vtx](), objs[&ooFT0Time]()); };
 
-    ooPVvsFT0Vtx.setObject(new TH3F(ooPVvsFT0Vtx.label.c_str(), "FT0 vertex vs PV;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (cm)}$;Primary vertex z position (cm)", nBinsVtx, vtxMin, vtxMax, nBinsVtx, vtxMin, vtxMax, conditions.size(), 0, conditions.size()));
+    ooPVvsFT0Vtx.setObject(new TH3F(ooPVvsFT0Vtx.label.c_str(), "PV vs FT0 vertex;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (cm)}$;Primary vertex z position (cm)", nBinsVtx, vtxMin, vtxMax, nBinsVtx, vtxMin, vtxMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooPVvsFT0Vtx] = [&]() { return std::make_pair(objs[&ooFT0Vtx](), objs[&ooPV]()); };
 
     ooFT0TimeResVsNContrib.setObject(new TH3F(ooFT0TimeResVsNContrib.label.c_str(), "FT0 time resolution vs number of contributors;Number of contributors to primary vertex;$\\text{PV} - (\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooFT0TimeResVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooFT0TimeRes]()); };
 
+    ooFT0TimeResVsFT0TotAmpl.setObject(new TH3F(ooFT0TimeResVsFT0TotAmpl.label.c_str(), "FT0 time resolution vs FT0 total amplitude;FT0 total amplitude (ADC);$\\text{PV} - (\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (ns)}$", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TimeResVsFT0TotAmpl] = [&]() { return std::make_pair(objs[&ooFT0TotAmpl](), objs[&ooFT0TimeRes]()); };
+
     ooPVFV0FT0CVtxDiffNSVsNContrib.setObject(new TH3F(ooPVFV0FT0CVtxDiffNSVsNContrib.label.c_str(), "PV - FV0-FT0C vertex vs number of contributors;Number of contributors to primary vertex;$\\text{PV} - (\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FV0}} \\rangle)/2 \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooPVFV0FT0CVtxDiffNSVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooPVFV0FT0CVtxDiffNS]()); };
+
+    ooPVFV0FT0CVtxDiffNSVsFV0TotAmpl.setObject(new TH3F(ooPVFV0FT0CVtxDiffNSVsFV0TotAmpl.label.c_str(), "PV - FV0-FT0C vertex vs FV0 total amplitude;FV0 total amplitude (ADC);$\\text{PV} - (\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FV0}} \\rangle)/2 \\text{ (ns)}$", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooPVFV0FT0CVtxDiffNSVsFV0TotAmpl] = [&]() { return std::make_pair(objs[&ooFV0TotAmpl](), objs[&ooPVFV0FT0CVtxDiffNS]()); };
 
     ooFDDTimeVsFDDVtx.setObject(new TH3F(ooFDDTimeVsFDDVtx.label.c_str(), "FDD collision time vs FDD vertex;$(\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (cm)}$;$(\\langle t_{\\text{FDDA}} \\rangle + \\langle t_{\\text{FDDC}} \\rangle)/2 \\text{ (ns)}$", nBinsVtxFDD, vtxMinFDD, vtxMaxFDD, nBinsTFDD, tMinFDD, tMaxFDD, conditions.size(), 0, conditions.size()));
     objs2D[&ooFDDTimeVsFDDVtx] = [&]() { return std::make_pair(objs[&ooFDDVtx](), objs[&ooFDDTime]()); };
@@ -453,8 +464,14 @@ struct fitQa {
     ooPVFDDVtxDiffNSVsNContrib.setObject(new TH3F(ooPVFDDVtxDiffNSVsNContrib.label.c_str(), "PV - FDD vertex vs number of contributors;Number of contributors to primary vertex;$\\text{PV} - (\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTResFDD, tResMinFDD, tResMaxFDD, conditions.size(), 0, conditions.size()));
     objs2D[&ooPVFDDVtxDiffNSVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooPVFDDVtxDiffNS]()); };
 
+    // ooPVFDDVtxDiffNSVsFDDTotAmpl.setObject(new TH3F(ooPVFDDVtxDiffNSVsFDDTotAmpl.label.c_str(), "PV - FDD vertex vs FDD total amplitude;FDD total amplitude (ADC);$\\text{PV} - (\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (ns)}$", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTResFDD, tResMinFDD, tResMaxFDD, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooPVFDDVtxDiffNSVsFDDTotAmpl] = [&]() { return std::make_pair(objs[&ooFDDTotAmpl](), objs[&ooPVFDDVtxDiffNS]()); };
+
     ooFT0TimeAFV0TimeDiffVsNContrib.setObject(new TH3F(ooFT0TimeAFV0TimeDiffVsNContrib.label.c_str(), "FT0A time - FV0 time vs number of contributors;Number of contributors to primary vertex;$\\langle t_{\\text{FT0A}} \\rangle - \\langle t_{\\text{FV0}} \\rangle \\text{ (ns)}$", nBinsNContrib / 10, nContribMin, nContribMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooFT0TimeAFV0TimeDiffVsNContrib] = [&]() { return std::make_pair(objs[&ooNcontrib](), objs[&ooFT0TimeAFV0TimeDiff]()); };
+
+    ooFT0TimeAFV0TimeDiffVsFV0TotAmpl.setObject(new TH3F(ooFT0TimeAFV0TimeDiffVsFV0TotAmpl.label.c_str(), "FT0A time - FV0 time vs FV0 total amplitude;FV0 total amplitude (ADC);$\\langle t_{\\text{FT0A}} \\rangle - \\langle t_{\\text{FV0}} \\rangle \\text{ (ns)}$", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TimeAFV0TimeDiffVsFV0TotAmpl] = [&]() { return std::make_pair(objs[&ooFV0TotAmpl](), objs[&ooFT0TimeAFV0TimeDiff]()); };
 
     // 2D quantities per X bin
 
