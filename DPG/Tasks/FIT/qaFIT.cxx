@@ -137,6 +137,15 @@ struct fitQa {
   std::array<float, nChFV0> fv0ChAmpl{}; ///< FV0 channel amplitudes (o2::aod::fv0::Amplitude)
   std::array<float, nChFDD> fddChAmpl{}; ///< FDD channel amplitudes (o2::aod::fdd::ChargeA and o2::aod::fdd::ChargeC)
 
+  // Derived quantities (not directly from AO2D)
+  float ft0TotAmpl = 0;
+  float ft0TotAmplA = 0;
+  float ft0TotAmplC = 0;
+  float fv0TotAmpl = 0;
+  float fddTotAmpl = 0;
+  float fddTotAmplA = 0;
+  float fddTotAmplC = 0;
+
   // Event selection conditions
   bool isSel8 = false;            ///< (o2::aod::evsel::Sel8)
   bool hasFT0 = false;            ///< (o2::aod::collision::has_foundFT0())
@@ -164,9 +173,12 @@ struct fitQa {
   std::vector<Condition> conditions{};  //< Event selection conditions to be considered
   
   /* Output objects
-     NOTE: 1D Quantities are stored in 2D hists, with event selection conditions on the Y-axis.
+     NOTE1: 1D Quantities are stored in 2D hists, with event selection conditions on the Y-axis.
      I.e. there's one version of the 1D histogram per Y bin (Condition).
-     Similar for 2D Quantities, they are stored in 3D histograms. */
+     Similar for 2D Quantities, they are stored in 3D histograms. 
+    
+    NOTE2: There's a limit of number of task struct members, so some OutputObj's are disabled for now
+  */
 
   /* 1D */
 
@@ -188,6 +200,8 @@ struct fitQa {
   OutputObj<TH2F> ooFT0Vtx{"FT0Vtx"};             ///< FT0 vertex (cm)
   OutputObj<TH2F> ooFT0VtxNS{"FT0VtxNS"};         ///< FT0 vertex (ns)
   OutputObj<TH2F> ooFT0TotAmpl{"FT0TotAmpl"};     ///< FT0 total amplitude (ADC)
+  OutputObj<TH2F> ooFT0TotAmplA{"FT0TotAmplA"};   ///< FT0A total amplitude (ADC)
+  OutputObj<TH2F> ooFT0TotAmplC{"FT0TotAmplC"};   ///< FT0C total amplitude (ADC)
 
   // FV0
   OutputObj<TH2F> ooFV0Time{"FV0Time"};                     ///< FV0 average time (ns)
@@ -205,6 +219,8 @@ struct fitQa {
   OutputObj<TH2F> ooFDDVtxNS{"FDDVtxNS"};             ///< FDD vertex (ns)
   OutputObj<TH2F> ooPVFDDVtxDiffNS{"PVFDDVtxDiffNS"}; ///< PV - FDD vertex (ns)
   OutputObj<TH2F> ooFDDTotAmpl{"FDDTotAmpl"};         ///< FDD total amplitude (ADC)
+  OutputObj<TH2F> ooFDDTotAmplA{"FDDTotAmplA"};       ///< FDD-A total amplitude (ADC)
+  OutputObj<TH2F> ooFDDTotAmplC{"FDDTotAmplC"};       ///< FDD-C total amplitude (ADC)
 
   // FT0, FV0
   OutputObj<TH2F> ooFT0TimeFV0TimeDiff{"FT0TimeFV0TimeDiff"};   ///< FT0 collision time - FV0 average time (ns)
@@ -238,6 +254,27 @@ struct fitQa {
   // FT0, FV0
   OutputObj<TH3F> ooFT0TimeAFV0TimeDiffVsNContrib{"FT0TimeAFV0TimeDiffVsNContrib"};     ///< FT0A average time - FV0 average time vs number of contributors
   OutputObj<TH3F> ooFT0TimeAFV0TimeDiffVsFV0TotAmpl{"FT0TimeAFV0TimeDiffVsFV0TotAmpl"}; ///< FT0A average time - FV0 average time vs FV0 total amplitude
+  OutputObj<TH3F> ooFT0TotAmplVsFV0TotAmpl{"FT0TotAmplVsFV0TotAmpl"};                   ///< FT0 total amplitude vs FV0 total amplitude
+  OutputObj<TH3F> ooFT0TotAmplAVsFV0TotAmpl{"FT0TotAmplAVsFV0TotAmpl"};                 ///< FT0A total amplitude vs FV0 total amplitude
+  OutputObj<TH3F> ooFT0TotAmplCVsFV0TotAmpl{"FT0TotAmplCVsFV0TotAmpl"};                 ///< FT0C total amplitude vs FV0 total amplitude
+
+  // FT0, FDD
+  OutputObj<TH3F> ooFT0TotAmplVsFDDTotAmpl{"FT0TotAmplVsFDDTotAmpl"};   ///< FT0 total amplitude vs FDD total amplitude
+  // OutputObj<TH3F> ooFT0TotAmplVsFDDTotAmplA{"FT0TotAmplVsFDDTotAmplA"}; ///< FT0 total amplitude vs FDD-A total amplitude
+  // OutputObj<TH3F> ooFT0TotAmplVsFDDTotAmplC{"FT0TotAmplVsFDDTotAmplC"}; ///< FT0 total amplitude vs FDD-C total amplitude
+
+  // OutputObj<TH3F> ooFT0TotAmplAVsFDDTotAmpl{"FT0TotAmplAVsFDDTotAmpl"};   ///< FT0A total amplitude vs FDD total amplitude
+  // OutputObj<TH3F> ooFT0TotAmplAVsFDDTotAmplA{"FT0TotAmplAVsFDDTotAmplA"}; ///< FT0A total amplitude vs FDD-A total amplitude
+  // OutputObj<TH3F> ooFT0TotAmplAVsFDDTotAmplC{"FT0TotAmplAVsFDDTotAmplC"}; ///< FT0A total amplitude vs FDD-C total amplitude
+  
+  // OutputObj<TH3F> ooFT0TotAmplCVsFDDTotAmpl{"FT0TotAmplCVsFDDTotAmpl"};   ///< FT0C total amplitude vs FDD total amplitude
+  // OutputObj<TH3F> ooFT0TotAmplCVsFDDTotAmplA{"FT0TotAmplCVsFDDTotAmplA"}; ///< FT0C total amplitude vs FDD-A total amplitude
+  // OutputObj<TH3F> ooFT0TotAmplCVsFDDTotAmplC{"FT0TotAmplCVsFDDTotAmplC"}; ///< FT0C total amplitude vs FDD-C total amplitude
+
+  // // FV0, FDD
+  OutputObj<TH3F> ooFV0TotAmplVsFDDTotAmpl{"FV0TotAmplVsFDDTotAmpl"};   ///< FV0 total amplitude vs FDD total amplitude
+  // OutputObj<TH3F> ooFV0TotAmplVsFDDTotAmplA{"FV0TotAmplVsFDDTotAmplA"}; ///< FV0 total amplitude vs FDD-A total amplitude
+  // OutputObj<TH3F> ooFV0TotAmplVsFDDTotAmplC{"FV0TotAmplVsFDDTotAmplC"}; ///< FV0 total amplitude vs FDD-C total amplitude
 
   /* 2D Quantities per X bin */
 
@@ -274,6 +311,14 @@ struct fitQa {
     fv0ChAmpl.fill(-20000.f);
     fddChAmpl.fill(-20000.f);
 
+    ft0TotAmpl = 0;
+    ft0TotAmplA = 0;
+    ft0TotAmplC = 0;
+    fv0TotAmpl = 0;
+    fddTotAmpl = 0;
+    fddTotAmplA = 0;
+    fddTotAmplC = 0;
+
     isSel8 = false;
     hasFT0 = false;
     hasFV0 = false;
@@ -300,15 +345,15 @@ struct fitQa {
     // conditions.push_back({"HasFV0", "has FV0", [&]() { return hasFV0; }});
     // conditions.push_back({"HasFDD", "has FDD", [&]() { return hasFDD; }});
     conditions.push_back({"FT0VTX", "FT0 vertex", [&]() { return isFT0VTX; }});
-    conditions.push_back({"FT0CE", "FT0 CE", [&]() { return isFT0CE; }});
-    conditions.push_back({"FT0SCE", "FT0 SCE", [&]() { return isFT0SCE; }});
+    // conditions.push_back({"FT0CE", "FT0 CE", [&]() { return isFT0CE; }});
+    // conditions.push_back({"FT0SCE", "FT0 SCE", [&]() { return isFT0SCE; }});
     // conditions.push_back({"FV0ORA", "FV0 ORA", [&]() { return isFV0ORA; }});
-    conditions.push_back({"FV0CH", "FV0 CH", [&]() { return isFV0CH; }});
-    conditions.push_back({"FV0IN", "FV0 IN", [&]() { return isFV0IN; }});
+    // conditions.push_back({"FV0CH", "FV0 CH", [&]() { return isFV0CH; }});
+    // conditions.push_back({"FV0IN", "FV0 IN", [&]() { return isFV0IN; }});
     // conditions.push_back({"FDDVTX", "FDD vertex", [&]() { return isFDDVTX; }});
     conditions.push_back({"FT0VTXandFV0ORA", "FT0 vertex AND FV0 ORA", [&]() { return isFT0VTXandFV0ORA; }});
-    conditions.push_back({"FT0VTXandFV0CH", "FT0 vertex AND FV0 CH", [&]() { return isFT0VTX && isFV0CH; }});
-    conditions.push_back({"FT0VTXandFV0IN", "FT0 vertex AND FV0 IN", [&]() { return isFT0VTX && isFV0IN; }});
+    // conditions.push_back({"FT0VTXandFV0CH", "FT0 vertex AND FV0 CH", [&]() { return isFT0VTX && isFV0CH; }});
+    // conditions.push_back({"FT0VTXandFV0IN", "FT0 vertex AND FV0 IN", [&]() { return isFT0VTX && isFV0IN; }});
     conditions.push_back({"FT0VTXandFDDVTX", "FT0 vertex AND FDD vertex", [&]() { return isFT0VTXandFDDVTX; }});
 
     /* Init OutputObj's */
@@ -355,6 +400,28 @@ struct fitQa {
 
     ooFDDTimeC.setObject(new TH2F(ooFDDTimeC.label.c_str(), "FDDC time;$\\langle t_{\\text{FDDC}} \\rangle \\text{ (ns)}$", nBinsTFDD, tMinFDD, tMaxFDD, conditions.size(), 0, conditions.size()));
     objs[&ooFDDTimeC] = [&]() { return fddtimeC; };
+
+    // TODO: fill multiplicity from mults tables and compare
+    ooFT0TotAmpl.setObject(new TH2F(ooFT0TotAmpl.label.c_str(), "FT0 total amplitude;FT0 amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFT0TotAmpl] = [&]() { return ft0TotAmpl; };
+
+    ooFT0TotAmplA.setObject(new TH2F(ooFT0TotAmplA.label.c_str(), "FT0A total amplitude;FT0A amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFT0TotAmplA] = [&]() { return ft0TotAmplA; };
+
+    ooFT0TotAmplC.setObject(new TH2F(ooFT0TotAmplC.label.c_str(), "FT0C total amplitude;FT0C amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFT0TotAmplC] = [&]() { return ft0TotAmplC; };
+
+    ooFV0TotAmpl.setObject(new TH2F(ooFV0TotAmpl.label.c_str(), "FV0 total amplitude;FV0 amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFV0TotAmpl] = [&]() { return fv0TotAmpl; };
+
+    ooFDDTotAmpl.setObject(new TH2F(ooFDDTotAmpl.label.c_str(), "FDD total amplitude;FDD amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFDDTotAmpl] = [&]() { return fddTotAmpl; };
+
+    ooFDDTotAmplA.setObject(new TH2F(ooFDDTotAmplA.label.c_str(), "FDD-A total amplitude;FDD-A amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFDDTotAmplA] = [&]() { return fddTotAmplA; };
+
+    ooFDDTotAmplC.setObject(new TH2F(ooFDDTotAmplC.label.c_str(), "FDD-C total amplitude;FDD-C amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs[&ooFDDTotAmplC] = [&]() { return fddTotAmplC; };
 
     // Derived quantities
     // TODO: some should maybe be calculated in AO2D tables?
@@ -405,39 +472,6 @@ struct fitQa {
     ooFT0VtxFDDVtxDiffNS.setObject(new TH2F(ooFT0VtxFDDVtxDiffNS.label.c_str(), "FT0 vertex - FDD vertex;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 - (\\langle t_{\\text{FDDC}} \\rangle - \\langle t_{\\text{FDDA}} \\rangle)/2 \\text{ (ns)}$", nBinsTResFDD, tResMinFDD, tResMaxFDD, conditions.size(), 0, conditions.size()));
     objs[&ooFT0VtxFDDVtxDiffNS] = [&]() { return objs[&ooFT0VtxNS]() - objs[&ooFDDVtxNS](); };
 
-    ooFT0TotAmpl.setObject(new TH2F(ooFT0TotAmpl.label.c_str(), "FT0 total amplitude;FT0 amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
-    objs[&ooFT0TotAmpl] = [&]() { 
-      float totAmpl = 0.f;
-      for (const auto& ampl : ft0ChAmpl) {
-        if (ampl > -100.f) {
-          totAmpl += ampl;
-        }
-      }
-      return totAmpl;
-    };
-
-    ooFV0TotAmpl.setObject(new TH2F(ooFV0TotAmpl.label.c_str(), "FV0 total amplitude;FV0 amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
-    objs[&ooFV0TotAmpl] = [&]() { 
-      float totAmpl = 0.f;
-      for (const auto& ampl : fv0ChAmpl) {
-        if (ampl > -100.f) {
-          totAmpl += ampl;
-        }
-      }
-      return totAmpl;
-    };
-
-    ooFDDTotAmpl.setObject(new TH2F(ooFDDTotAmpl.label.c_str(), "FDD total amplitude;FDD amplitude (ADC)", nBinsTotAmpl, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
-    objs[&ooFDDTotAmpl] = [&]() { 
-      float totAmpl = 0.f;
-      for (const auto& ampl : fddChAmpl) {
-        if (ampl > -100.f) {
-          totAmpl += ampl;
-        }
-      }
-      return totAmpl;
-    };
-
     // 2D quantities
 
     ooFT0TimeVsFT0Vtx.setObject(new TH3F(ooFT0TimeVsFT0Vtx.label.c_str(), "FT0 time vs FT0 vertex;$(\\langle t_{\\text{FT0C}} \\rangle - \\langle t_{\\text{FT0A}} \\rangle)/2 \\text{ (cm)}$;$(\\langle t_{\\text{FT0A}} \\rangle + \\langle t_{\\text{FT0C}} \\rangle)/2 \\text{ (ns)}$", nBinsVtx, vtxMin, vtxMax, nBinsT, tMin, tMax, conditions.size(), 0, conditions.size()));
@@ -475,6 +509,51 @@ struct fitQa {
 
     ooFT0TimeAFV0TimeDiffVsFV0TotAmpl.setObject(new TH3F(ooFT0TimeAFV0TimeDiffVsFV0TotAmpl.label.c_str(), "FT0A time - FV0 time vs FV0 total amplitude;FV0 total amplitude (ADC);$\\langle t_{\\text{FT0A}} \\rangle - \\langle t_{\\text{FV0}} \\rangle \\text{ (ns)}$", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTRes, tResMin, tResMax, conditions.size(), 0, conditions.size()));
     objs2D[&ooFT0TimeAFV0TimeDiffVsFV0TotAmpl] = [&]() { return std::make_pair(objs[&ooFV0TotAmpl](), objs[&ooFT0TimeAFV0TimeDiff]()); };
+
+    ooFT0TotAmplVsFV0TotAmpl.setObject(new TH3F(ooFT0TotAmplVsFV0TotAmpl.label.c_str(), "FT0 total amplitude vs FV0 total amplitude;FV0 total amplitude (ADC);FT0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TotAmplVsFV0TotAmpl] = [&]() { return std::make_pair(objs[&ooFV0TotAmpl](), objs[&ooFT0TotAmpl]()); };
+
+    ooFT0TotAmplAVsFV0TotAmpl.setObject(new TH3F(ooFT0TotAmplAVsFV0TotAmpl.label.c_str(), "FT0A total amplitude vs FV0 total amplitude;FV0 total amplitude (ADC);FT0A total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TotAmplAVsFV0TotAmpl] = [&]() { return std::make_pair(objs[&ooFV0TotAmpl](), objs[&ooFT0TotAmplA]()); };
+
+    ooFT0TotAmplCVsFV0TotAmpl.setObject(new TH3F(ooFT0TotAmplCVsFV0TotAmpl.label.c_str(), "FT0C total amplitude vs FV0 total amplitude;FV0 total amplitude (ADC);FT0C total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TotAmplCVsFV0TotAmpl] = [&]() { return std::make_pair(objs[&ooFV0TotAmpl](), objs[&ooFT0TotAmplC]()); };
+
+    ooFT0TotAmplVsFDDTotAmpl.setObject(new TH3F(ooFT0TotAmplVsFDDTotAmpl.label.c_str(), "FT0 total amplitude vs FDD total amplitude;FDD total amplitude (ADC);FT0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFT0TotAmplVsFDDTotAmpl] = [&]() { return std::make_pair(objs[&ooFDDTotAmpl](), objs[&ooFT0TotAmpl]()); };
+
+    // ooFT0TotAmplVsFDDTotAmplA.setObject(new TH3F(ooFT0TotAmplVsFDDTotAmplA.label.c_str(), "FT0 total amplitude vs FDD-A total amplitude;FDD-A total amplitude (ADC);FT0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplVsFDDTotAmplA] = [&]() { return std::make_pair(objs[&ooFDDTotAmplA](), objs[&ooFT0TotAmpl]()); };
+
+    // ooFT0TotAmplVsFDDTotAmplC.setObject(new TH3F(ooFT0TotAmplVsFDDTotAmplC.label.c_str(), "FT0 total amplitude vs FDD-C total amplitude;FDD-C total amplitude (ADC);FT0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplVsFDDTotAmplC] = [&]() { return std::make_pair(objs[&ooFDDTotAmplC](), objs[&ooFT0TotAmpl]()); };
+
+    // ooFT0TotAmplAVsFDDTotAmpl.setObject(new TH3F(ooFT0TotAmplAVsFDDTotAmpl.label.c_str(), "FT0A total amplitude vs FDD total amplitude;FDD total amplitude (ADC);FT0A total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplAVsFDDTotAmpl] = [&]() { return std::make_pair(objs[&ooFDDTotAmpl](), objs[&ooFT0TotAmplA]()); };
+
+    // ooFT0TotAmplAVsFDDTotAmplA.setObject(new TH3F(ooFT0TotAmplAVsFDDTotAmplA.label.c_str(), "FT0A total amplitude vs FDD-A total amplitude;FDD-A total amplitude (ADC);FT0A total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplAVsFDDTotAmplA] = [&]() { return std::make_pair(objs[&ooFDDTotAmplA](), objs[&ooFT0TotAmplA]()); };
+
+    // ooFT0TotAmplAVsFDDTotAmplC.setObject(new TH3F(ooFT0TotAmplAVsFDDTotAmplC.label.c_str(), "FT0A total amplitude vs FDD-C total amplitude;FDD-C total amplitude (ADC);FT0A total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplAVsFDDTotAmplC] = [&]() { return std::make_pair(objs[&ooFDDTotAmplC](), objs[&ooFT0TotAmplA]()); };
+
+    // ooFT0TotAmplCVsFDDTotAmpl.setObject(new TH3F(ooFT0TotAmplCVsFDDTotAmpl.label.c_str(), "FT0C total amplitude vs FDD total amplitude;FDD total amplitude (ADC);FT0C total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplCVsFDDTotAmpl] = [&]() { return std::make_pair(objs[&ooFDDTotAmpl](), objs[&ooFT0TotAmplC]()); };
+
+    // ooFT0TotAmplCVsFDDTotAmplA.setObject(new TH3F(ooFT0TotAmplCVsFDDTotAmplA.label.c_str(), "FT0C total amplitude vs FDD-A total amplitude;FDD-A total amplitude (ADC);FT0C total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplCVsFDDTotAmplA] = [&]() { return std::make_pair(objs[&ooFDDTotAmplA](), objs[&ooFT0TotAmplC]()); };
+
+    // ooFT0TotAmplCVsFDDTotAmplC.setObject(new TH3F(ooFT0TotAmplCVsFDDTotAmplC.label.c_str(), "FT0C total amplitude vs FDD-C total amplitude;FDD-C total amplitude (ADC);FT0C total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFT0TotAmplCVsFDDTotAmplC] = [&]() { return std::make_pair(objs[&ooFDDTotAmplC](), objs[&ooFT0TotAmplC]()); };
+
+    ooFV0TotAmplVsFDDTotAmpl.setObject(new TH3F(ooFV0TotAmplVsFDDTotAmpl.label.c_str(), "FV0 total amplitude vs FDD total amplitude;FDD total amplitude (ADC);FV0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    objs2D[&ooFV0TotAmplVsFDDTotAmpl] = [&]() { return std::make_pair(objs[&ooFDDTotAmpl](), objs[&ooFV0TotAmpl]()); };
+
+    // ooFV0TotAmplVsFDDTotAmplA.setObject(new TH3F(ooFV0TotAmplVsFDDTotAmplA.label.c_str(), "FV0 total amplitude vs FDD-A total amplitude;FDD-A total amplitude (ADC);FV0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFV0TotAmplVsFDDTotAmplA] = [&]() { return std::make_pair(objs[&ooFDDTotAmplA](), objs[&ooFV0TotAmpl]()); };
+
+    // ooFV0TotAmplVsFDDTotAmplC.setObject(new TH3F(ooFV0TotAmplVsFDDTotAmplC.label.c_str(), "FV0 total amplitude vs FDD-C total amplitude;FDD-C total amplitude (ADC);FV0 total amplitude (ADC)", nBinsTotAmpl / 10, totAmplMin, totAmplMax, nBinsTotAmpl / 10, totAmplMin, totAmplMax, conditions.size(), 0, conditions.size()));
+    // objs2D[&ooFV0TotAmplVsFDDTotAmplC] = [&]() { return std::make_pair(objs[&ooFDDTotAmplC](), objs[&ooFV0TotAmpl]()); };
 
     // 2D quantities per X bin
 
@@ -540,9 +619,13 @@ struct fitQa {
 
       for (size_t i = 0; i < ft0.amplitudeA().size(); i++) {
         ft0ChAmpl[ft0.channelA()[i]] = ft0.amplitudeA()[i];
+        ft0TotAmpl += ft0.amplitudeA()[i];
+        ft0TotAmplA += ft0.amplitudeA()[i];
       }
       for (size_t i = 0; i < ft0.amplitudeC().size(); i++) {
         ft0ChAmpl[ft0.channelC()[i] + nChFT0A] = ft0.amplitudeC()[i]; // Channel IDs in the C-side array start from zero in AO2D (JIRA AFIT-129)
+        ft0TotAmpl += ft0.amplitudeC()[i];
+        ft0TotAmplC += ft0.amplitudeC()[i];
       }
       
     }
@@ -558,6 +641,7 @@ struct fitQa {
 
       for (size_t i = 0; i < fv0.amplitude().size(); i++) {
         fv0ChAmpl[fv0.channel()[i]] = fv0.amplitude()[i];
+        fv0TotAmpl += fv0.amplitude()[i];
       }
     }
 
@@ -574,9 +658,13 @@ struct fitQa {
       // TODO: don't hard code?
       for (size_t i = 0; i < 8; i++) {
         fddChAmpl[i + 8] = fdd.chargeA()[i];
+        fddTotAmpl += fdd.chargeA()[i];
+        fddTotAmplA += fdd.chargeA()[i];
       }
       for (size_t i = 0; i < 8; i++) {
         fddChAmpl[i] = fdd.chargeC()[i];
+        fddTotAmpl += fdd.chargeC()[i];
+        fddTotAmplC += fdd.chargeC()[i];
       }
     }
 
