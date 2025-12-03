@@ -50,6 +50,9 @@ struct fitQa {
     as well as the amount of event selection conditions to consider,
     especially for the 3D histograms. ROOT object buffers can easily
     exceed the 1GB limit.
+
+    TODO:
+    - finer resolution for time res plots
   */
 
   /* Constants - TODO: get from somehwere else, don't hardcode here? */
@@ -79,10 +82,10 @@ struct fitQa {
   static constexpr float tMaxFDD = 20.;
 
   // Axis limits for histograms from which we deduce collision time for FT0 and FV0
-  // Times are in ns, these give a resolution of 2 ps per bin
+  // Times are in ns, these give a resolution of 1 ps per bin
   static constexpr int nBinsTRes = 2000;
-  static constexpr float tResMin = -2.;
-  static constexpr float tResMax = 2.;
+  static constexpr float tResMin = -1.;
+  static constexpr float tResMax = 1.;
 
   // Axis limits for histograms from which we deduce collision time for FDD (it has larger spread)
   // Times are in ns, these give a resolution of 2 ps per bin
