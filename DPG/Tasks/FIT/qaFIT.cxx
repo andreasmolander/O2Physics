@@ -151,17 +151,9 @@ struct fitQa {
   bool hasFT0 = false;            ///< (o2::aod::collision::has_foundFT0())
   bool hasFV0 = false;            ///< (o2::aod::collision::has_foundFV0())
   bool hasFDD = false;            ///< (o2::aod::collision::has_foundFDD())
-  bool isFT0VTX = false;          ///< FT0 vertex trigger
-  bool isFT0CE = false;           ///< FT0 central trigger
-  bool isFT0SCE = false;          ///< FT0 semi-central trigger
-  bool isFV0ORA = false;          ///< FV0 ORA trigger
-  bool isFV0CH = false;           ///< FV0 charge trigger
-  bool isFV0IN = false;           ///< FV0 inner rings charge trigger
-  bool isFDDORA = false;          ///< FDD ORA trigger
-  bool isFDDORC = false;          ///< FDD ORC trigger
-  bool isFDDVTX = false;          ///< FDD vertex trigger
-  bool isFT0VTXandFV0ORA = false; ///< FT0 vertex AND FV0 ORA trigger
-  bool isFT0VTXandFDDVTX = false; ///< FT0 vertex AND FDD vertex trigger
+  std::bitset<8> ft0Triggers;     ///< FT0 trigger bits (o2::aod::ft0::TriggerMask)
+  std::bitset<8> fv0Triggers;     ///< FV0 trigger bits (o2::aod::fv0::TriggerMask)
+  std::bitset<8> fddTriggers;     ///< FDD trigger bits (o2::aod::fdd::TriggerMask)
 
   /// Helper struct for event selection conditions
   struct Condition {
@@ -171,6 +163,9 @@ struct fitQa {
   };
 
   std::vector<Condition> conditions{};  //< Event selection conditions to be considered
+  std::vector<Condition> ft0Conditions{}; //< FT0 related event selection conditions to be considered 
+  std::vector<Condition> fv0Conditions{}; //< FT0 related event selection conditions to be considered 
+  std::vector<Condition> fddConditions{}; //< FT0 related event selection conditions to be considered 
   
   /* Output objects
      NOTE1: 1D Quantities are stored in 2D hists, with event selection conditions on the Y-axis.
@@ -189,6 +184,9 @@ struct fitQa {
   OutputObj<TH2F> ooPV{"collPV"};             ///< Primary vertex (cm)
   OutputObj<TH2F> ooPVns{"collPVns"};         ///< Primary vertex (ns)
   OutputObj<TH2F> ooNcontrib{"collNcontrib"}; ///< Number of contributors
+  OutputObj<TH2F> ooNcontribFT0{"collNcontribFT0"}; ///< Number of contributors, FT0 triggers
+  OutputObj<TH2F> ooNcontribFV0{"collNcontribFV0"}; ///< Number of contributors, FV0 triggers
+  OutputObj<TH2F> ooNcontribFDD{"collNcontribFDD"}; ///< Number of contributors, FDD triggers
   
   // FT0
   OutputObj<TH2F> ooFT0TimeA{"FT0TimeA"};         ///< FT0A average time (ns)
@@ -286,6 +284,9 @@ struct fitQa {
 
   /// 1D quantities (one value per collision)
   std::unordered_map<OutputObj<TH2F>*, std::function<float()>> objs;
+  std::unordered_map<OutputObj<TH2F>*, std::function<float()>> objsft0;
+  std::unordered_map<OutputObj<TH2F>*, std::function<float()>> objsfv0;
+  std::unordered_map<OutputObj<TH2F>*, std::function<float()>> objsfdd;
   /// 2D quantities (one value per collision, e.g. collision time vs vertex)
   std::unordered_map<OutputObj<TH3F>*, std::function<std::pair<float, float>()>> objs2D;
   /// 2D quantities per X bin (one value per X bin per collision, e.g. amplitude per channel)
@@ -323,17 +324,9 @@ struct fitQa {
     hasFT0 = false;
     hasFV0 = false;
     hasFDD = false;
-    isFT0VTX = false;
-    isFT0CE = false;
-    isFT0SCE = false;
-    isFV0ORA = false;
-    isFV0CH = false;
-    isFV0IN = false;
-    isFDDORA = false;
-    isFDDORC = false;
-    isFDDVTX = false;
-    isFT0VTXandFV0ORA = false;
-    isFT0VTXandFDDVTX = false;
+    ft0Triggers.reset();
+    fv0Triggers.reset();
+    fddTriggers.reset();
   }
 
   void init(InitContext&) {
@@ -344,17 +337,42 @@ struct fitQa {
     // conditions.push_back({"HasFT0", "has FT0", [&]() { return hasFT0; }});
     // conditions.push_back({"HasFV0", "has FV0", [&]() { return hasFV0; }});
     // conditions.push_back({"HasFDD", "has FDD", [&]() { return hasFDD; }});
-    conditions.push_back({"FT0VTX", "FT0 vertex", [&]() { return isFT0VTX; }});
+    conditions.push_back({"FT0VTX", "FT0 vertex", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitVertex); }});
     // conditions.push_back({"FT0CE", "FT0 CE", [&]() { return isFT0CE; }});
     // conditions.push_back({"FT0SCE", "FT0 SCE", [&]() { return isFT0SCE; }});
     // conditions.push_back({"FV0ORA", "FV0 ORA", [&]() { return isFV0ORA; }});
     // conditions.push_back({"FV0CH", "FV0 CH", [&]() { return isFV0CH; }});
     // conditions.push_back({"FV0IN", "FV0 IN", [&]() { return isFV0IN; }});
     // conditions.push_back({"FDDVTX", "FDD vertex", [&]() { return isFDDVTX; }});
-    conditions.push_back({"FT0VTXandFV0ORA", "FT0 vertex AND FV0 ORA", [&]() { return isFT0VTXandFV0ORA; }});
+    conditions.push_back({"FT0VTXandFV0ORA", "FT0 vertex AND FV0 ORA", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitVertex) && fv0Triggers.test(o2::fit::Triggers::bitA); }});
     // conditions.push_back({"FT0VTXandFV0CH", "FT0 vertex AND FV0 CH", [&]() { return isFT0VTX && isFV0CH; }});
     // conditions.push_back({"FT0VTXandFV0IN", "FT0 vertex AND FV0 IN", [&]() { return isFT0VTX && isFV0IN; }});
-    conditions.push_back({"FT0VTXandFDDVTX", "FT0 vertex AND FDD vertex", [&]() { return isFT0VTXandFDDVTX; }});
+    conditions.push_back({"FT0VTXandFDDVTX", "FT0 vertex AND FDD vertex", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitVertex) && fddTriggers.test(o2::fit::Triggers::bitVertex); }});
+
+    ft0Conditions.push_back({"All", "all collisions", [&]() { return true; }});
+    ft0Conditions.push_back({"FT0ORA", "FT0 ORA", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitA); }});
+    ft0Conditions.push_back({"FT0ORC", "FT0 ORC", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitC); }});
+    ft0Conditions.push_back({"FT0VTX", "FT0 VTX", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitVertex); }});
+    ft0Conditions.push_back({"FT0CE", "FT0 CE", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitCen); }});
+    ft0Conditions.push_back({"FT0SCE", "FT0 SCE", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitSCen); }});
+    ft0Conditions.push_back({"FT0ACTIVEA", "FT0 ACTIVE A", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitLaser); }});
+    ft0Conditions.push_back({"FT0ACTIVEC", "FT0 ACTIVE C", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitOutputsAreBlocked); }});
+    ft0Conditions.push_back({"FT0FLANGE", "FT0 FLANGE", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitDataIsValid); }});
+    ft0Conditions.push_back({"FT0MINBIAS", "FT0 MIN BIAS", [&]() { return ft0Triggers.test(o2::fit::Triggers::bitVertex) && (ft0Triggers.test(o2::fit::Triggers::bitCen) || ft0Triggers.test(o2::fit::Triggers::bitSCen)); }});
+
+    fv0Conditions.push_back({"All", "all collisions", [&]() { return true; }});
+    fv0Conditions.push_back({"FV0ORA", "FV0 ORA", [&]() { return fv0Triggers.test(o2::fit::Triggers::bitA); }});
+    fv0Conditions.push_back({"FV0NCHAN", "FV0 NCHAN", [&]() { return fv0Triggers.test(o2::fit::Triggers::bitTrgNchan); }});
+    fv0Conditions.push_back({"FV0CH", "FV0 CH", [&]() { return fv0Triggers.test(o2::fit::Triggers::bitTrgCharge); }});
+    fv0Conditions.push_back({"FV0OUT", "FV0 OUT", [&]() { return fv0Triggers.test(o2::fit::Triggers::bitAOut); }});
+    fv0Conditions.push_back({"FV0CH", "FV0 IN", [&]() { return fv0Triggers.test(o2::fit::Triggers::bitAIn); }});
+
+    fddConditions.push_back({"All", "all collisions", [&]() { return true; }});
+    fddConditions.push_back({"FDDORA", "FDD ORA", [&]() { return fddTriggers.test(o2::fit::Triggers::bitA); }});
+    fddConditions.push_back({"FDDORC", "FDD ORC", [&]() { return fddTriggers.test(o2::fit::Triggers::bitC); }});
+    fddConditions.push_back({"FDDVTX", "FDD vertex", [&]() { return fddTriggers.test(o2::fit::Triggers::bitVertex); }});
+    fddConditions.push_back({"FDDCE", "FDD CE", [&]() { return fddTriggers.test(o2::fit::Triggers::bitCen); }});
+    fddConditions.push_back({"FDDSCE", "FDD SCE", [&]() { return fddTriggers.test(o2::fit::Triggers::bitSCen); }});
 
     /* Init OutputObj's */
 
@@ -370,6 +388,15 @@ struct fitQa {
 
     ooNcontrib.setObject(new TH2F(ooNcontrib.label.c_str(), "Number of contributors to primary vertex;Number of contributors to primary vertex", nBinsNContrib, nContribMin, nContribMax, conditions.size(), 0, conditions.size()));
     objs[&ooNcontrib] = [&]() { return nContrib; };
+
+    ooNcontribFT0.setObject(new TH2F(ooNcontribFT0.label.c_str(), "Number of contributors to primary vertex;Number of contributors to primary vertex", nBinsNContrib, nContribMin, nContribMax, ft0Conditions.size(), 0, ft0Conditions.size()));
+    objsft0[&ooNcontribFT0] = [&]() { return nContrib; };
+
+    ooNcontribFV0.setObject(new TH2F(ooNcontribFV0.label.c_str(), "Number of contributors to primary vertex;Number of contributors to primary vertex", nBinsNContrib, nContribMin, nContribMax, fv0Conditions.size(), 0, fv0Conditions.size()));
+    objsfv0[&ooNcontribFV0] = [&]() { return nContrib; };
+
+    ooNcontribFDD.setObject(new TH2F(ooNcontribFDD.label.c_str(), "Number of contributors to primary vertex;Number of contributors to primary vertex", nBinsNContrib, nContribMin, nContribMax, fddConditions.size(), 0, fddConditions.size()));
+    objsfdd[&ooNcontribFDD] = [&]() { return nContrib; };
 
     ooFT0TimeA.setObject(new TH2F(ooFT0TimeA.label.c_str(), "FT0A time;$\\langle t_{\\text{FT0A}} \\rangle \\text{ (ns)}$", nBinsT, tMin, tMax, conditions.size(), 0, conditions.size()));
     objs[&ooFT0TimeA] = [&]() { return ft0timeA; };
@@ -573,6 +600,21 @@ struct fitQa {
         h.first->object->GetYaxis()->SetBinLabel(c + 1, conditions[c].title.c_str());
       }
     }
+    for (auto &h : objsft0) {
+      for (size_t c = 0; c < ft0Conditions.size(); c++) {
+        h.first->object->GetYaxis()->SetBinLabel(c + 1, ft0Conditions[c].title.c_str());
+      }
+    }
+    for (auto &h : objsfv0) {
+      for (size_t c = 0; c < fv0Conditions.size(); c++) {
+        h.first->object->GetYaxis()->SetBinLabel(c + 1, fv0Conditions[c].title.c_str());
+      }
+    }
+    for (auto &h : objsfdd) {
+      for (size_t c = 0; c < fddConditions.size(); c++) {
+        h.first->object->GetYaxis()->SetBinLabel(c + 1, fddConditions[c].title.c_str());
+      }
+    }
     for (auto &h : objs2D) {
       for (size_t c = 0; c < conditions.size(); c++) {
         h.first->object->GetZaxis()->SetBinLabel(c + 1, conditions[c].title.c_str());
@@ -607,10 +649,10 @@ struct fitQa {
 
     if (hasFT0) {
       auto ft0 = collision.foundFT0();
-      std::bitset<8> ft0Triggers = ft0.triggerMask();
-      isFT0VTX = ft0Triggers[o2::fit::Triggers::bitVertex];
-      isFT0CE = ft0Triggers[o2::fit::Triggers::bitCen];
-      isFT0SCE = ft0Triggers[o2::fit::Triggers::bitSCen];
+      ft0Triggers = ft0.triggerMask();
+      // isFT0VTX = ft0Triggers[o2::fit::Triggers::bitVertex];
+      // isFT0CE = ft0Triggers[o2::fit::Triggers::bitCen];
+      // isFT0SCE = ft0Triggers[o2::fit::Triggers::bitSCen];
 
       ft0timeA = ft0.timeA();
       ft0timeC = ft0.timeC();
@@ -632,10 +674,10 @@ struct fitQa {
 
     if (hasFV0) {
       auto fv0 = collision.foundFV0();
-      std::bitset<8> fv0Triggers = fv0.triggerMask();
-      isFV0ORA = fv0Triggers[o2::fit::Triggers::bitA];
-      isFV0CH = fv0Triggers[o2::fit::Triggers::bitTrgNchan];
-      isFV0IN = fv0Triggers[o2::fit::Triggers::bitAIn];
+      fv0Triggers = fv0.triggerMask();
+      // isFV0ORA = fv0Triggers[o2::fit::Triggers::bitA];
+      // isFV0CH = fv0Triggers[o2::fit::Triggers::bitTrgNchan];
+      // isFV0IN = fv0Triggers[o2::fit::Triggers::bitAIn];
 
       fv0time = fv0.time();
 
@@ -647,10 +689,10 @@ struct fitQa {
 
     if (hasFDD) {
       auto fdd = collision.foundFDD();
-      std::bitset<8> fddTriggers = fdd.triggerMask();
-      isFDDORA = fddTriggers[o2::fit::Triggers::bitA];
-      isFDDORC = fddTriggers[o2::fit::Triggers::bitC];
-      isFDDVTX = fddTriggers[o2::fit::Triggers::bitVertex];
+      fddTriggers = fdd.triggerMask();
+      // isFDDORA = fddTriggers[o2::fit::Triggers::bitA];
+      // isFDDORC = fddTriggers[o2::fit::Triggers::bitC];
+      // isFDDVTX = fddTriggers[o2::fit::Triggers::bitVertex];
 
       fddtimeA = fdd.timeA();
       fddtimeC = fdd.timeC();
@@ -668,18 +710,31 @@ struct fitQa {
       }
     }
 
-    isFT0VTXandFV0ORA = isFT0VTX && isFV0ORA;
-    isFT0VTXandFDDVTX = isFT0VTX && isFDDVTX;
+    // isFT0VTXandFV0ORA = isFT0VTX && isFV0ORA;
+    // isFT0VTXandFDDVTX = isFT0VTX && isFDDVTX;
 
     /* Evaluate conditions and fill stats histo */
 
     std::vector<bool> condResults(conditions.size(), false);
+    std::vector<bool> ft0CondResults(ft0Conditions.size(), false);
+    std::vector<bool> fv0CondResults(fv0Conditions.size(), false);
+    std::vector<bool> fddCondResults(fddConditions.size(), false);
 
     for (size_t c = 0; c < conditions.size(); c++) {
       condResults[c] = conditions[c].eval();
       if (condResults[c]) {
         ooStats->Fill(c + 0.5);
       }
+    }
+
+    for (size_t c = 0; c < ft0Conditions.size(); c++) {
+      ft0CondResults[c] = ft0Conditions[c].eval();
+    }
+    for (size_t c = 0; c < fv0Conditions.size(); c++) {
+      fv0CondResults[c] = fv0Conditions[c].eval();
+    }
+    for (size_t c = 0; c < fddConditions.size(); c++) {
+      fddCondResults[c] = fddConditions[c].eval();
     }
 
     /* Fill histograms */
@@ -689,6 +744,33 @@ struct fitQa {
       for (size_t c = 0; c < conditions.size(); c++) {
         if (condResults[c]) {
           (*h.first)->Fill(v, c + 0.5);
+        }
+      }
+    }
+
+    for (auto &h : objsft0) {
+      float v = h.second();
+      for (size_t c = 0; c < ft0Conditions.size(); c++) {
+        if (ft0CondResults[c]) {
+          (*h.first)->Fill(v, c + 0.5f);
+        }
+      }
+    }
+
+    for (auto &h : objsfv0) {
+      float v = h.second();
+      for (size_t c = 0; c < fv0Conditions.size(); c++) {
+        if (fv0CondResults[c]) {
+          (*h.first)->Fill(v, c + 0.5f);
+        }
+      }
+    }
+
+    for (auto &h : objsfdd) {
+      float v = h.second();
+      for (size_t c = 0; c < fddConditions.size(); c++) {
+        if (fddCondResults[c]) {
+          (*h.first)->Fill(v, c + 0.5f);
         }
       }
     }
