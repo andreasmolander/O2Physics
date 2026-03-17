@@ -14,6 +14,7 @@ o2physics_add_header_only_library(DataModel
                                           Centrality.h
                                           EventSelection.h
                                           FT0Corrected.h
+                                          FITExtra.h
                                           Multiplicity.h
                                           PIDResponse.h
                                           PIDResponseITS.h

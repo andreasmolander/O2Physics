@@ -73,7 +73,12 @@ o2physics_add_dpl_workflow(weak-decay-indices
 o2physics_add_dpl_workflow(ft0-corrected-table
                     SOURCES ft0CorrectedTable.cxx
                     PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
-                COMPONENT_NAME Analysis)
+                    COMPONENT_NAME Analysis)
+
+o2physics_add_dpl_workflow(fit-extra-table
+                    SOURCES fitExtraTable.cxx
+                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                    COMPONENT_NAME Analysis)
 
 o2physics_add_dpl_workflow(track-propagation
                     SOURCES trackPropagation.cxx
