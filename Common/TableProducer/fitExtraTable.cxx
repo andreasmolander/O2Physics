@@ -100,25 +100,31 @@ struct fitExtraTable {
         fddTriggers = fdd.triggerMask();
       }
   
-      table(pv,
-            nContrib,
-            ft0timeA,
-            ft0timeC,
-            ft0timeACorr,
-            ft0timeCCorr,
-            ft0time,
-            ft0timeRes,
-            ft0vtx,
-            fv0time,
-            fddtimeA,
-            fddtimeC,
-            sel8,
-            hasFT0,
-            hasFV0,
-            hasFDD,
-            ft0Triggers,
-            fv0Triggers,
-            fddTriggers);
+      // table(pv,
+      //       nContrib,
+      //       ft0timeA,
+      //       ft0timeC,
+      //       ft0timeACorr,
+      //       ft0timeCCorr,
+      //       ft0time,
+      //       ft0timeRes,
+      //       ft0vtx,
+      //       fv0time,
+      //       fddtimeA,
+      //       fddtimeC,
+      //       sel8,
+      //       hasFT0,
+      //       hasFV0,
+      //       hasFDD,
+      //       ft0Triggers,
+      //       fv0Triggers,
+      //       fddTriggers);
+      table(sel8, hasFT0, hasFV0, hasFDD,
+            ft0Triggers, fv0Triggers, fddTriggers,
+            pv, nContrib,
+            ft0timeA, ft0timeC, ft0timeACorr, ft0timeCCorr,
+            ft0time, ft0timeRes, ft0vtx,
+            fv0time, fddtimeA, fddtimeC);
     }
   }
 };
