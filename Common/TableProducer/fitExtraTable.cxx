@@ -16,6 +16,7 @@
 #include <CommonConstants/PhysicsConstants.h>
 #include <Framework/AnalysisDataModel.h>
 #include <Framework/AnalysisTask.h>
+#include <string>
 
 using namespace o2;
 using namespace o2::framework;
@@ -47,9 +48,19 @@ struct fitExtraTable {
     float ft0time = -200;
     float ft0timeRes = -200;
     float ft0vtx = -200;
+    std::vector<float> ft0chAmpl(o2::aod::fit::nChFT0, 0);
+    float ft0totAmplA = 0;
+    float ft0totAmplC = 0;
+
     float fv0time = -200;
+    std::vector<float> fv0chAmpl(o2::aod::fit::nChFV0, 0);
+    float fv0totAmpl = 0;
+
     float fddtimeA = -200;
     float fddtimeC = -200;
+    std::vector<float> fddchAmpl(o2::aod::fit::nChFDD, 0);
+    float fddtotAmplA = 0;
+    float fddtotAmplC = 0;
 
     bool sel8, hasFT0, hasFV0, hasFDD;
     uint8_t ft0Triggers, fv0Triggers, fddTriggers;
@@ -66,9 +77,19 @@ struct fitExtraTable {
       ft0time = -200;
       ft0timeRes = -200;
       ft0vtx = -200;
+      std::fill(ft0chAmpl.begin(), ft0chAmpl.end(), 0);
+      ft0totAmplA = 0;
+      ft0totAmplC = 0;
+
       fv0time = -200;
+      std::fill(fv0chAmpl.begin(), fv0chAmpl.end(), 0);
+      fv0totAmpl = 0;
+
       fddtimeA = -200;
       fddtimeC = -200;
+      std::fill(fddchAmpl.begin(), fddchAmpl.end(), 0);
+      fddtotAmplA = 0;
+      fddtotAmplC = 0;
 
       hasFT0 = collision.has_foundFT0();
       hasFV0 = collision.has_foundFV0();
@@ -87,44 +108,49 @@ struct fitExtraTable {
         ft0timeCCorr = collision.t0CCorrected();
         ft0timeRes = collision.t0resolution();
         ft0Triggers = ft0.triggerMask();
+        for (size_t i = 0; i < ft0.amplitudeA().size(); i++) {
+          ft0chAmpl[ft0.channelA()[i]] = ft0.amplitudeA()[i];
+        }
+        for (size_t i = 0; i < ft0.amplitudeC().size(); i++) {
+          ft0chAmpl[ft0.channelC()[i] + o2::aod::fit::nChFT0A] = ft0.amplitudeC()[i]; // Channel IDs in the C-side array start from zero in AO2D (JIRA AFIT-129)
+        }
+        ft0totAmplA = ft0.sumAmpA();
+        ft0totAmplC = ft0.sumAmpC();
       }
+
       if (hasFV0) {
         auto fv0 = collision.foundFV0();
         fv0time = fv0.time();
         fv0Triggers = fv0.triggerMask();
+        for (size_t i = 0; i < fv0.amplitude().size(); i++) {
+          fv0chAmpl[fv0.channel()[i]] = fv0.amplitude()[i];
+          fv0totAmpl += fv0.amplitude()[i];
+        }
       }
+
       if (hasFDD) {
         auto fdd = collision.foundFDD();
         fddtimeA = fdd.timeA();
         fddtimeC = fdd.timeC();
         fddTriggers = fdd.triggerMask();
+        for (size_t i = 0; i < 8; i++) {
+          fddchAmpl[i + 8] = fdd.chargeA()[i];
+          fddtotAmplA += fdd.chargeA()[i];
+        }
+        for (size_t i = 0; i < 8; i++) {
+          fddchAmpl[i] = fdd.chargeC()[i];
+          fddtotAmplC += fdd.chargeC()[i]; 
+        }
       }
   
-      // table(pv,
-      //       nContrib,
-      //       ft0timeA,
-      //       ft0timeC,
-      //       ft0timeACorr,
-      //       ft0timeCCorr,
-      //       ft0time,
-      //       ft0timeRes,
-      //       ft0vtx,
-      //       fv0time,
-      //       fddtimeA,
-      //       fddtimeC,
-      //       sel8,
-      //       hasFT0,
-      //       hasFV0,
-      //       hasFDD,
-      //       ft0Triggers,
-      //       fv0Triggers,
-      //       fddTriggers);
       table(sel8, hasFT0, hasFV0, hasFDD,
             ft0Triggers, fv0Triggers, fddTriggers,
             pv, nContrib,
             ft0timeA, ft0timeC, ft0timeACorr, ft0timeCCorr,
             ft0time, ft0timeRes, ft0vtx,
-            fv0time, fddtimeA, fddtimeC);
+            ft0chAmpl, ft0totAmplA, ft0totAmplC,
+            fv0time, fv0chAmpl, fv0totAmpl,
+            fddtimeA, fddtimeC, fddchAmpl, fddtotAmplA, fddtotAmplC);
     }
   }
 };

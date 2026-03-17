@@ -19,10 +19,20 @@ namespace o2::aod
 {
 namespace fit
 {
+
+// Constants
+// TODO: add reference channels?
+static constexpr int nChFT0 = 208; ///< Number of FT0 channels
+static constexpr int nChFT0A = 96; ///< Number of FT0A channels (-> number of FT0C channels = nChFT0 - nChFT0A)
+static constexpr int nChFV0 = 48;  ///< Number of FV0 channels
+static constexpr int nChFDD = 16;  ///< Number of FDD channels
+static constexpr int nADC = 4096;  ///< Number of ADC channels
+
 // Quantities copied straight from AOD
 // TODO: do we need them here?
 DECLARE_SOA_COLUMN(PV, pv, float);                     //! Primary vertex position in cm (o2::aod::‌collision::PosZ)
 DECLARE_SOA_COLUMN(NContrib, nContrib, int);           //! Number of contributors to primary vertex (o2::aod::‌collision::NumContrib)
+
 DECLARE_SOA_COLUMN(FT0TimeA, ft0timeA, float);         //! FT0-A average time in ns (o2::aod::ft0::TimeA)
 DECLARE_SOA_COLUMN(FT0TimeC, ft0timeC, float);         //! FT0-C average time in ns (o2::aod::ft0::TimeC)
 DECLARE_SOA_COLUMN(FT0TimeACorr, ft0timeACorr, float); //! FT0-A average time in ns corrected PV (o2::aod::ft0::T0ACorrected)
@@ -30,11 +40,21 @@ DECLARE_SOA_COLUMN(FT0TimeCCorr, ft0timeCCorr, float); //! FT0-C average time in
 DECLARE_SOA_COLUMN(FT0Time, ft0time, float);           //! FT0 collision time in ns (o2::aod::ft0::CollTime)
 DECLARE_SOA_COLUMN(FT0TimeRes, ft0timeRes, float);     //! FT0 collision time resolution in ns (o2::aod::ft0::T0Resolution)
 DECLARE_SOA_COLUMN(FT0Vtx, ft0vtx, float);             //! FT0 vertex in cm (o2::aod::ft0::PosZ)
+DECLARE_SOA_COLUMN(FT0ChAmpl, ft0chAmpl, std::vector<float>); //! FT0 channel amplitudes
+DECLARE_SOA_COLUMN(FT0TotAmplA, ft0totAmplA, float);     //! FT0-A total amplitude (o2::aod::ft0::SumAmpA)
+DECLARE_SOA_COLUMN(FT0TotAmplC, ft0totAmplC, float);     //! FT0-C total amplitude (o2::aod::ft0::SumAmpC)
+
 DECLARE_SOA_COLUMN(FV0Time, fv0time, float);           //! FV0 average time in ns (o2::aod::fv0a::Time)
+DECLARE_SOA_COLUMN(FV0ChAmpl, fv0chAmpl, std::vector<float>); //! FV0 channel amplitudes
+
 DECLARE_SOA_COLUMN(FDDTimeA, fddtimeA, float);         //! FDD-A average time in ns (o2::aod::fdd::TimeA)
 DECLARE_SOA_COLUMN(FDDTimeC, fddtimeC, float);         //! FDD-C average time in ns (o2::aod::fdd::TimeC)
+DECLARE_SOA_COLUMN(FDDChAmpl, fddchAmpl, std::vector<float>); //! FDD channel amplitudes
 
 // Derived quantities
+DECLARE_SOA_COLUMN(FV0TotAmpl, fv0totAmpl, float);     //! FV0 total amplitude
+DECLARE_SOA_COLUMN(FDDTotAmplA, fddtotAmplA, float);     //! FDD-A total amplitude
+DECLARE_SOA_COLUMN(FDDTotAmplC, fddtotAmplC, float);     //! FDD-C total amplitude
 
 // Event selection conditions straigt from AOD
 // TODO: do we need them here?
@@ -53,7 +73,9 @@ DECLARE_SOA_TABLE(FITExtras, "AOD", "FITEXTRA", //! Table with extra FIT informa
                   fit::PV, fit::NContrib,
                   fit::FT0TimeA, fit::FT0TimeC, fit::FT0TimeACorr, fit::FT0TimeCCorr,
                   fit::FT0Time, fit::FT0TimeRes, fit::FT0Vtx,
-                  fit::FV0Time, fit::FDDTimeA, fit::FDDTimeC);
+                  fit::FT0ChAmpl, fit::FT0TotAmplA, fit::FT0TotAmplC,
+                  fit::FV0Time, fit::FV0ChAmpl, fit::FV0TotAmpl,
+                  fit::FDDTimeA, fit::FDDTimeC, fit::FDDChAmpl, fit::FDDTotAmplA, fit::FDDTotAmplC);
 
 using FITExtra = FITExtras::iterator;
 
