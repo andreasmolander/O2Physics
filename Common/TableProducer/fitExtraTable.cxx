@@ -70,9 +70,9 @@ struct fitExtraTable {
     // FT0
     int32_t ft0BCId = -1;
     std::vector<float> ft0AmplitudeA;
-    std::vector<int8_t> ft0ChannelA;
+    std::vector<uint8_t> ft0ChannelA;
     std::vector<float> ft0AmplitudeC;
-    std::vector<int8_t> ft0ChannelC;
+    std::vector<uint8_t> ft0ChannelC;
     float ft0TimeA = -200;
     float ft0TimeC = -200;
     uint8_t ft0TriggerMask = 0;
@@ -95,7 +95,7 @@ struct fitExtraTable {
     // FV0A
     int32_t fv0BCId = -1;
     std::vector<float> fv0Amplitude;
-    std::vector<int8_t> fv0Channel;
+    std::vector<uint8_t> fv0Channel;
     float fv0Time = -200;
     uint8_t fv0TriggerMask = 0;
 
@@ -268,18 +268,14 @@ struct fitExtraTable {
             timestamp,
             sel8, hasFT0, hasFV0, hasFDD,
             bcId, posX, posY, posZ, flags, numContrib, collisionTime, collisionTimeRes,
-            // ft0BCId,
-            ft0AmplitudeA, ft0ChannelA, ft0AmplitudeC, ft0ChannelC,
+            ft0BCId, ft0AmplitudeA, ft0ChannelA, ft0AmplitudeC, ft0ChannelC,
             ft0TimeA, ft0TimeC, ft0TriggerMask, ft0PosZ, ft0CollTime, ft0SumAmpA, ft0SumAmpC,
             t0ACorrected, t0CCorrected, t0AC, t0resolution,
             ft0ChAmpl, ft0TotAmplA, ft0TotAmplC,
-            // fv0BCId,
-            fv0Amplitude, fv0Channel, fv0Time, fv0TriggerMask,
+            fv0BCId, fv0Amplitude, fv0Channel, fv0Time, fv0TriggerMask,
             fv0ChAmpl, fv0TotAmpl,
-            // fddBCId,
-            fddChargeA, fddChargeC, fddTimeA, fddTimeC, fddTriggerMask,
-            fddChAmpl, fddTotAmplA, fddTotAmplC
-          );
+            fddBCId, fddChargeA, fddChargeC, fddTimeA, fddTimeC, fddTriggerMask,
+            fddChAmpl, fddTotAmplA, fddTotAmplC);
     }
   }
 };

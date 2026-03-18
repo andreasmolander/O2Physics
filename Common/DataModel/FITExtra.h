@@ -113,18 +113,14 @@ DECLARE_SOA_TABLE(FITExtras, "AOD", "FITEXTRA", //! Table with extra FIT informa
                   fit::Timestamp,
                   fit::Sel8, fit::HasFT0, fit::HasFV0, fit::HasFDD,
                   fit::BCId, fit::PosX, fit::PosY, fit::PosZ, fit::Flags, fit::NumContrib, fit::CollisionTime, fit::CollisionTimeRes,
-                //   fit::FT0BCId,
-                  fit::FT0AmplitudeA, fit::FT0ChannelA, fit::FT0AmplitudeC, fit::FT0ChannelC,
+                  fit::FT0BCId, fit::FT0AmplitudeA, fit::FT0ChannelA, fit::FT0AmplitudeC, fit::FT0ChannelC,
                   fit::FT0TimeA, fit::FT0TimeC, fit::FT0TriggerMask, fit::FT0PosZ, fit::FT0CollTime, fit::FT0SumAmpA, fit::FT0SumAmpC,
                   fit::T0ACorrected, fit::T0CCorrected, fit::T0AC, fit::T0Resolution,
                   fit::FT0ChAmpl, fit::FT0TotAmplA, fit::FT0TotAmplC,
-                //   fit::FV0BCId,
-                  fit::FV0Amplitude, fit::FV0Channel, fit::FV0Time, fit::FV0TriggerMask,
+                  fit::FV0BCId, fit::FV0Amplitude, fit::FV0Channel, fit::FV0Time, fit::FV0TriggerMask,
                   fit::FV0ChAmpl, fit::FV0TotAmpl,
-                //   fit::FDDBCId,
-                  fit::FDDChargeA, fit::FDDChargeC, fit::FDDTimeA, fit::FDDTimeC, fit::FDDTriggerMask,
-                  fit::FDDChAmpl, fit::FDDTotAmplA, fit::FDDTotAmplC
-                );
+                  fit::FDDBCId, fit::FDDChargeA, fit::FDDChargeC, fit::FDDTimeA, fit::FDDTimeC, fit::FDDTriggerMask,
+                  fit::FDDChAmpl, fit::FDDTotAmplA, fit::FDDTotAmplC);
 
 using FITExtra = FITExtras::iterator;
 
