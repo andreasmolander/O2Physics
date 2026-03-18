@@ -70,9 +70,9 @@ struct fitExtraTable {
     // FT0
     int32_t ft0BCId = -1;
     std::vector<float> ft0AmplitudeA;
-    std::vector<int16_t> ft0ChannelA;
+    std::vector<int8_t> ft0ChannelA;
     std::vector<float> ft0AmplitudeC;
-    std::vector<int16_t> ft0ChannelC;
+    std::vector<int8_t> ft0ChannelC;
     float ft0TimeA = -200;
     float ft0TimeC = -200;
     uint8_t ft0TriggerMask = 0;
@@ -95,7 +95,7 @@ struct fitExtraTable {
     // FV0A
     int32_t fv0BCId = -1;
     std::vector<float> fv0Amplitude;
-    std::vector<int16_t> fv0Channel;
+    std::vector<int8_t> fv0Channel;
     float fv0Time = -200;
     uint8_t fv0TriggerMask = 0;
 
