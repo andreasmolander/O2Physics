@@ -14,6 +14,7 @@
 
 #include "Framework/ASoA.h"
 #include "Framework/AnalysisDataModel.h"
+#include <cstdint>
 
 namespace o2::aod
 {
@@ -30,8 +31,19 @@ static constexpr int nADC = 4096;  ///< Number of ADC channels
 
 // Quantities copied straight from AOD
 // TODO: do we need them here?
-DECLARE_SOA_COLUMN(PV, pv, float);                     //! Primary vertex position in cm (o2::aod::‌collision::PosZ)
+DECLARE_SOA_COLUMN(RunNumber, runNumber, int);
+DECLARE_SOA_COLUMN(GlobalBC, globalBC, uint64_t);
+DECLARE_SOA_COLUMN(CTPtriggerMask, ctpTriggerMask, uint64_t);
+DECLARE_SOA_COLUMN(CTPinputMask, ctpInputMask, uint64_t);
+
+DECLARE_SOA_COLUMN(BCId, bcId, int32_t);              //! BC ID (o2::aod::collision::BCId)
+DECLARE_SOA_COLUMN(PosX, posX, float);
+DECLARE_SOA_COLUMN(PosY, posY, float);
+DECLARE_SOA_COLUMN(PosZ, posZ, float);                     //! Primary vertex position in cm (o2::aod::‌collision::PosZ)
+DECLARE_SOA_COLUMN(Flags, flags, uint16_t);                 //! Collision flags (o2::aod::collision::Flags)
 DECLARE_SOA_COLUMN(NContrib, nContrib, int);           //! Number of contributors to primary vertex (o2::aod::‌collision::NumContrib)
+DECLARE_SOA_COLUMN(CollisionTime, collisionTime, float); //! Collision time (o2::aod::collision::CollisionTime)
+DECLARE_SOA_COLUMN(CollisionTimeRes, collisionTimeRes, float); //! Collision time resolution (o2::aod::collision::CollisionTimeRes)
 
 DECLARE_SOA_COLUMN(FT0TimeA, ft0timeA, float);         //! FT0-A average time in ns (o2::aod::ft0::TimeA)
 DECLARE_SOA_COLUMN(FT0TimeC, ft0timeC, float);         //! FT0-C average time in ns (o2::aod::ft0::TimeC)
@@ -43,6 +55,8 @@ DECLARE_SOA_COLUMN(FT0Vtx, ft0vtx, float);             //! FT0 vertex in cm (o2:
 DECLARE_SOA_COLUMN(FT0ChAmpl, ft0chAmpl, std::vector<float>); //! FT0 channel amplitudes
 DECLARE_SOA_COLUMN(FT0TotAmplA, ft0totAmplA, float);     //! FT0-A total amplitude (o2::aod::ft0::SumAmpA)
 DECLARE_SOA_COLUMN(FT0TotAmplC, ft0totAmplC, float);     //! FT0-C total amplitude (o2::aod::ft0::SumAmpC)
+DECLARE_SOA_COLUMN(FT0TotAmplACheck, ft0totabletAmplACheck, float);     //! FT0-A total amplitude computed from channel amplitudes (for cross check)
+DECLARE_SOA_COLUMN(FT0TotAmplCCheck, ft0totAmplCCheck, float);     //! FT0-C total amplitude computed from channel amplitudes (for cross check)
 
 DECLARE_SOA_COLUMN(FV0Time, fv0time, float);           //! FV0 average time in ns (o2::aod::fv0a::Time)
 DECLARE_SOA_COLUMN(FV0ChAmpl, fv0chAmpl, std::vector<float>); //! FV0 channel amplitudes
@@ -70,10 +84,11 @@ DECLARE_SOA_COLUMN(FDDTriggers, fddTriggers, uint8_t); //! FDD trigger mask (o2:
 DECLARE_SOA_TABLE(FITExtras, "AOD", "FITEXTRA", //! Table with extra FIT information
                   fit::Sel8, fit::HasFT0, fit::HasFV0, fit::HasFDD,
                   fit::FT0Triggers, fit::FV0Triggers, fit::FDDTriggers,
-                  fit::PV, fit::NContrib,
+                  fit::RunNumber, fit::GlobalBC, fit::CTPtriggerMask, fit::CTPinputMask,
+                  fit::BCId, fit::PosX, fit::PosY, fit::PosZ, fit::Flags, fit::NContrib, fit::CollisionTime, fit::CollisionTimeRes,
                   fit::FT0TimeA, fit::FT0TimeC, fit::FT0TimeACorr, fit::FT0TimeCCorr,
                   fit::FT0Time, fit::FT0TimeRes, fit::FT0Vtx,
-                  fit::FT0ChAmpl, fit::FT0TotAmplA, fit::FT0TotAmplC,
+                  fit::FT0ChAmpl, fit::FT0TotAmplA, fit::FT0TotAmplC, fit::FT0TotAmplACheck, fit::FT0TotAmplCCheck,
                   fit::FV0Time, fit::FV0ChAmpl, fit::FV0TotAmpl,
                   fit::FDDTimeA, fit::FDDTimeC, fit::FDDChAmpl, fit::FDDTotAmplA, fit::FDDTotAmplC);
 

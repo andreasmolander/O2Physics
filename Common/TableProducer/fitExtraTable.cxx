@@ -23,6 +23,8 @@ using namespace o2::framework;
 
 #include "Framework/runDataProcessing.h"
 
+using BCsWithTimestamps = soa::Join<aod::BCs, aod::Timestamps>;
+
 struct fitExtraTable {
   // Producer
   Produces<o2::aod::FITExtra> table;
@@ -35,11 +37,23 @@ struct fitExtraTable {
   }
   
   void process(soa::Join<aod::Collisions, aod::EvSels, aod::FT0sCorrected> const& collisions,
+               aod::BCsWithTimestamps const&,
                aod::FT0s const&, aod::FV0As const&, aod::FDDs const&) {
     table.reserve(collisions.size());
 
-    float pv = -200;
+    int runnumber = -1;
+    uint64_t globalBC = 0;
+    uint64_t ctpTriggerMask = 0;
+    uint64_t ctpInputMask = 0;
+
+    int32_t bcId = -1;
+    float posX = -200;
+    float posY = -200;
+    float posZ = -200;
+    uint16_t flags = 0;
     int nContrib = -1;
+    float collisionTime = -200;
+    float collisionTimeRes = -200;
 
     float ft0timeA = -200;
     float ft0timeC = -200;
@@ -51,6 +65,8 @@ struct fitExtraTable {
     std::vector<float> ft0chAmpl(o2::aod::fit::nChFT0, 0);
     float ft0totAmplA = 0;
     float ft0totAmplC = 0;
+    float ft0totAmplACheck = 0;
+    float ft0totAmplCCheck = 0;
 
     float fv0time = -200;
     std::vector<float> fv0chAmpl(o2::aod::fit::nChFV0, 0);
@@ -66,8 +82,21 @@ struct fitExtraTable {
     uint8_t ft0Triggers, fv0Triggers, fddTriggers;
 
     for (const auto& collision : collisions) {
-      pv = collision.posZ();
+      auto bc = collision.bc_as<aod::BCsWithTimestamps>();
+      runnumber = bc.runNumber();
+      globalBC = bc.globalBC();
+      ctpTriggerMask = bc.triggerMask();
+      ctpInputMask = bc.inputMask();
+
+      bcId = collision.bcId();
+      posX = collision.posX();
+      posY = collision.posY();
+      posZ = collision.posZ();
+      flags = collision.flags();
       nContrib = collision.numContrib();
+      collisionTime = collision.collisionTime();
+      collisionTimeRes = collision.collisionTimeRes();
+
       sel8 = collision.sel8();
 
       ft0timeA = -200;
@@ -80,6 +109,8 @@ struct fitExtraTable {
       std::fill(ft0chAmpl.begin(), ft0chAmpl.end(), 0);
       ft0totAmplA = 0;
       ft0totAmplC = 0;
+      ft0totAmplACheck = 0;
+      ft0totAmplCCheck = 0;
 
       fv0time = -200;
       std::fill(fv0chAmpl.begin(), fv0chAmpl.end(), 0);
@@ -110,9 +141,11 @@ struct fitExtraTable {
         ft0Triggers = ft0.triggerMask();
         for (size_t i = 0; i < ft0.amplitudeA().size(); i++) {
           ft0chAmpl[ft0.channelA()[i]] = ft0.amplitudeA()[i];
+          ft0totAmplA += ft0.amplitudeA()[i];
         }
         for (size_t i = 0; i < ft0.amplitudeC().size(); i++) {
           ft0chAmpl[ft0.channelC()[i] + o2::aod::fit::nChFT0A] = ft0.amplitudeC()[i]; // Channel IDs in the C-side array start from zero in AO2D (JIRA AFIT-129)
+          ft0totAmplC += ft0.amplitudeC()[i];
         }
         ft0totAmplA = ft0.sumAmpA();
         ft0totAmplC = ft0.sumAmpC();
@@ -145,10 +178,11 @@ struct fitExtraTable {
   
       table(sel8, hasFT0, hasFV0, hasFDD,
             ft0Triggers, fv0Triggers, fddTriggers,
-            pv, nContrib,
+            runnumber, globalBC, ctpTriggerMask, ctpInputMask,
+            bcId, posX, posY, posZ, flags, nContrib, collisionTime, collisionTimeRes,
             ft0timeA, ft0timeC, ft0timeACorr, ft0timeCCorr,
             ft0time, ft0timeRes, ft0vtx,
-            ft0chAmpl, ft0totAmplA, ft0totAmplC,
+            ft0chAmpl, ft0totAmplA, ft0totAmplC, ft0totAmplACheck, ft0totAmplCCheck,
             fv0time, fv0chAmpl, fv0totAmpl,
             fddtimeA, fddtimeC, fddchAmpl, fddtotAmplA, fddtotAmplC);
     }
