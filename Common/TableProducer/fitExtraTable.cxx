@@ -278,7 +278,8 @@ struct fitExtraTable {
             fv0ChAmpl, fv0TotAmpl,
             // fddBCId,
             fddChargeA, fddChargeC, fddTimeA, fddTimeC, fddTriggerMask,
-            fddChAmpl, fddTotAmplA, fddTotAmplC);
+            fddChAmpl, fddTotAmplA, fddTotAmplC
+          );
     }
   }
 };
