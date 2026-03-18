@@ -31,66 +31,96 @@ static constexpr int nADC = 4096;  ///< Number of ADC channels
 
 // Quantities copied straight from AOD
 // TODO: do we need them here?
+
+// BCs
 DECLARE_SOA_COLUMN(RunNumber, runNumber, int);
 DECLARE_SOA_COLUMN(GlobalBC, globalBC, uint64_t);
 DECLARE_SOA_COLUMN(CTPtriggerMask, ctpTriggerMask, uint64_t);
 DECLARE_SOA_COLUMN(CTPinputMask, ctpInputMask, uint64_t);
 
-DECLARE_SOA_COLUMN(BCId, bcId, int32_t);              //! BC ID (o2::aod::collision::BCId)
+// Timestamps
+DECLARE_SOA_COLUMN(Timestamp, timestamp, uint64_t);
+
+// EvSels
+DECLARE_SOA_COLUMN(Sel8, sel8, bool);
+DECLARE_SOA_COLUMN(HasFT0, hasFT0, bool);
+DECLARE_SOA_COLUMN(HasFV0, hasFV0, bool);
+DECLARE_SOA_COLUMN(HasFDD, hasFDD, bool);
+
+// Collisions
+DECLARE_SOA_COLUMN(BCId, bcId, int32_t);
 DECLARE_SOA_COLUMN(PosX, posX, float);
 DECLARE_SOA_COLUMN(PosY, posY, float);
-DECLARE_SOA_COLUMN(PosZ, posZ, float);                     //! Primary vertex position in cm (o2::aod::‌collision::PosZ)
-DECLARE_SOA_COLUMN(Flags, flags, uint16_t);                 //! Collision flags (o2::aod::collision::Flags)
-DECLARE_SOA_COLUMN(NContrib, nContrib, int);           //! Number of contributors to primary vertex (o2::aod::‌collision::NumContrib)
-DECLARE_SOA_COLUMN(CollisionTime, collisionTime, float); //! Collision time (o2::aod::collision::CollisionTime)
-DECLARE_SOA_COLUMN(CollisionTimeRes, collisionTimeRes, float); //! Collision time resolution (o2::aod::collision::CollisionTimeRes)
+DECLARE_SOA_COLUMN(PosZ, posZ, float);
+DECLARE_SOA_COLUMN(Flags, flags, uint16_t);
+DECLARE_SOA_COLUMN(NumContrib, numContrib, uint16_t);
+DECLARE_SOA_COLUMN(CollisionTime, collisionTime, float);
+DECLARE_SOA_COLUMN(CollisionTimeRes, collisionTimeRes, float);
 
-DECLARE_SOA_COLUMN(FT0TimeA, ft0timeA, float);         //! FT0-A average time in ns (o2::aod::ft0::TimeA)
-DECLARE_SOA_COLUMN(FT0TimeC, ft0timeC, float);         //! FT0-C average time in ns (o2::aod::ft0::TimeC)
-DECLARE_SOA_COLUMN(FT0TimeACorr, ft0timeACorr, float); //! FT0-A average time in ns corrected PV (o2::aod::ft0::T0ACorrected)
-DECLARE_SOA_COLUMN(FT0TimeCCorr, ft0timeCCorr, float); //! FT0-C average time in ns corrected PV (o2::aod::ft0::T0CCorrected)
-DECLARE_SOA_COLUMN(FT0Time, ft0time, float);           //! FT0 collision time in ns (o2::aod::ft0::CollTime)
-DECLARE_SOA_COLUMN(FT0TimeRes, ft0timeRes, float);     //! FT0 collision time resolution in ns (o2::aod::ft0::T0Resolution)
-DECLARE_SOA_COLUMN(FT0Vtx, ft0vtx, float);             //! FT0 vertex in cm (o2::aod::ft0::PosZ)
-DECLARE_SOA_COLUMN(FT0ChAmpl, ft0chAmpl, std::vector<float>); //! FT0 channel amplitudes
-DECLARE_SOA_COLUMN(FT0TotAmplA, ft0totAmplA, float);     //! FT0-A total amplitude (o2::aod::ft0::SumAmpA)
-DECLARE_SOA_COLUMN(FT0TotAmplC, ft0totAmplC, float);     //! FT0-C total amplitude (o2::aod::ft0::SumAmpC)
-DECLARE_SOA_COLUMN(FT0TotAmplACheck, ft0totabletAmplACheck, float);     //! FT0-A total amplitude computed from channel amplitudes (for cross check)
-DECLARE_SOA_COLUMN(FT0TotAmplCCheck, ft0totAmplCCheck, float);     //! FT0-C total amplitude computed from channel amplitudes (for cross check)
+// FT0s
+DECLARE_SOA_COLUMN(FT0BCId, ft0BCId, int32_t);
+DECLARE_SOA_COLUMN(FT0AmplitudeA, ft0AmplitudeA, std::vector<float>);
+DECLARE_SOA_COLUMN(FT0ChannelA, ft0ChannelA, std::vector<uint8_t>);
+DECLARE_SOA_COLUMN(FT0AmplitudeC, ft0AmplitudeC, std::vector<float>);
+DECLARE_SOA_COLUMN(FT0ChannelC, ft0ChannelC, std::vector<uint8_t>);
+DECLARE_SOA_COLUMN(FT0TimeA, ft0TimeA, float);
+DECLARE_SOA_COLUMN(FT0TimeC, ft0TimeC, float);
+DECLARE_SOA_COLUMN(FT0TriggerMask, ft0TriggerMask, uint8_t);
+DECLARE_SOA_COLUMN(FT0PosZ, ft0PosZ, float);
+DECLARE_SOA_COLUMN(FT0CollTime, ft0CollTime, float);
+DECLARE_SOA_COLUMN(FT0SumAmpA, ft0SumAmpA, float);
+DECLARE_SOA_COLUMN(FT0SumAmpC, ft0SumAmpC, float);
 
-DECLARE_SOA_COLUMN(FV0Time, fv0time, float);           //! FV0 average time in ns (o2::aod::fv0a::Time)
-DECLARE_SOA_COLUMN(FV0ChAmpl, fv0chAmpl, std::vector<float>); //! FV0 channel amplitudes
+// FT0sCorrected
+DECLARE_SOA_COLUMN(T0ACorrected, t0ACorrected, float);
+DECLARE_SOA_COLUMN(T0CCorrected, t0CCorrected, float);
+DECLARE_SOA_COLUMN(T0AC, t0AC, float);
+DECLARE_SOA_COLUMN(T0Resolution, t0resolution, float);
 
-DECLARE_SOA_COLUMN(FDDTimeA, fddtimeA, float);         //! FDD-A average time in ns (o2::aod::fdd::TimeA)
-DECLARE_SOA_COLUMN(FDDTimeC, fddtimeC, float);         //! FDD-C average time in ns (o2::aod::fdd::TimeC)
-DECLARE_SOA_COLUMN(FDDChAmpl, fddchAmpl, std::vector<float>); //! FDD channel amplitudes
+// FT0 derived quantities
+DECLARE_SOA_COLUMN(FT0ChAmpl, ft0ChAmpl, std::vector<float>);  //! FT0 channel amplitudes, vector idx = ch ID
+DECLARE_SOA_COLUMN(FT0TotAmplA, ft0TotAmplA, float); //! FT0-A total amplitude computed from channel amplitudes (for cross check)
+DECLARE_SOA_COLUMN(FT0TotAmplC, ft0TotAmplC, float); //! FT0-C total amplitude computed from channel amplitudes(for cross check)
 
-// Derived quantities
-DECLARE_SOA_COLUMN(FV0TotAmpl, fv0totAmpl, float);     //! FV0 total amplitude
-DECLARE_SOA_COLUMN(FDDTotAmplA, fddtotAmplA, float);     //! FDD-A total amplitude
-DECLARE_SOA_COLUMN(FDDTotAmplC, fddtotAmplC, float);     //! FDD-C total amplitude
+// FV0As
+DECLARE_SOA_COLUMN(FV0BCId, fv0BCId, int32_t);
+DECLARE_SOA_COLUMN(FV0Amplitude, fv0Amplitude, std::vector<float>);
+DECLARE_SOA_COLUMN(FV0Channel, fv0Channel, std::vector<uint8_t>);
+DECLARE_SOA_COLUMN(FV0Time, fv0Time, float);
+DECLARE_SOA_COLUMN(FV0TriggerMask, fv0TriggerMask, uint8_t);
 
-// Event selection conditions straigt from AOD
-// TODO: do we need them here?
-DECLARE_SOA_COLUMN(Sel8, sel8, bool);                  //! (o2::aod::evsel::Sel8)
-DECLARE_SOA_COLUMN(HasFT0, hasFT0, bool);              //! (o2::aod::collision::has_foundFT0())
-DECLARE_SOA_COLUMN(HasFV0, hasFV0, bool);              //! (o2::aod::collision::has_foundFV0())
-DECLARE_SOA_COLUMN(HasFDD, hasFDD, bool);              //! (o2::aod::collision::has_foundFDD())
-DECLARE_SOA_COLUMN(FT0Triggers, ft0Triggers, uint8_t); //! FT0 trigger mask (o2::aod::ft0::TriggerMask)
-DECLARE_SOA_COLUMN(FV0Triggers, fv0Triggers, uint8_t); //! FV0 trigger mask (o2::aod::fv0a::TriggerMask)
-DECLARE_SOA_COLUMN(FDDTriggers, fddTriggers, uint8_t); //! FDD trigger mask (o2::aod::fdd::TriggerMask)
+// FV0 derived quantities
+DECLARE_SOA_COLUMN(FV0ChAmpl, fv0ChAmpl, std::vector<float>); //! FV0 channel amplitudes, vector idx = ch ID
+DECLARE_SOA_COLUMN(FV0TotAmpl, fv0TotAmpl, float);
+
+// FDD
+DECLARE_SOA_COLUMN(FDDBCId, fddBCId, int32_t);
+DECLARE_SOA_COLUMN(FDDChargeA, fddChargeA, int16_t[8]);
+DECLARE_SOA_COLUMN(FDDChargeC, fddChargeC, int16_t[8]);
+DECLARE_SOA_COLUMN(FDDTimeA, fddTimeA, float);
+DECLARE_SOA_COLUMN(FDDTimeC, fddTimeC, float);
+DECLARE_SOA_COLUMN(FDDTriggerMask, fddTriggerMask, uint8_t);
+
+// FDD derived quantities
+DECLARE_SOA_COLUMN(FDDChAmpl, fddChAmpl, std::vector<float>); //! FDD channel amplitudes, vector idx = ch ID
+DECLARE_SOA_COLUMN(FDDTotAmplA, fddTotAmplA, float);
+DECLARE_SOA_COLUMN(FDDTotAmplC, fddTotAmplC, float);
+
 } // namespace fit
 
 DECLARE_SOA_TABLE(FITExtras, "AOD", "FITEXTRA", //! Table with extra FIT information
-                  fit::Sel8, fit::HasFT0, fit::HasFV0, fit::HasFDD,
-                  fit::FT0Triggers, fit::FV0Triggers, fit::FDDTriggers,
                   fit::RunNumber, fit::GlobalBC, fit::CTPtriggerMask, fit::CTPinputMask,
-                  fit::BCId, fit::PosX, fit::PosY, fit::PosZ, fit::Flags, fit::NContrib, fit::CollisionTime, fit::CollisionTimeRes,
-                  fit::FT0TimeA, fit::FT0TimeC, fit::FT0TimeACorr, fit::FT0TimeCCorr,
-                  fit::FT0Time, fit::FT0TimeRes, fit::FT0Vtx,
-                  fit::FT0ChAmpl, fit::FT0TotAmplA, fit::FT0TotAmplC, fit::FT0TotAmplACheck, fit::FT0TotAmplCCheck,
-                  fit::FV0Time, fit::FV0ChAmpl, fit::FV0TotAmpl,
-                  fit::FDDTimeA, fit::FDDTimeC, fit::FDDChAmpl, fit::FDDTotAmplA, fit::FDDTotAmplC);
+                  fit::Timestamp,
+                  fit::Sel8, fit::HasFT0, fit::HasFV0, fit::HasFDD,
+                  fit::BCId, fit::PosX, fit::PosY, fit::PosZ, fit::Flags, fit::NumContrib, fit::CollisionTime, fit::CollisionTimeRes,
+                  fit::FT0BCId, fit::FT0AmplitudeA, fit::FT0ChannelA, fit::FT0AmplitudeC, fit::FT0ChannelC,
+                  fit::FT0TimeA, fit::FT0TimeC, fit::FT0TriggerMask, fit::FT0PosZ, fit::FT0CollTime, fit::FT0SumAmpA, fit::FT0SumAmpC,
+                  fit::T0ACorrected, fit::T0CCorrected, fit::T0AC, fit::T0Resolution,
+                  fit::FT0ChAmpl, fit::FT0TotAmplA, fit::FT0TotAmplC,
+                  fit::FV0BCId, fit::FV0Amplitude, fit::FV0Channel, fit::FV0Time, fit::FV0TriggerMask,
+                  fit::FV0ChAmpl, fit::FV0TotAmpl,
+                  fit::FDDBCId, fit::FDDChargeA, fit::FDDChargeC, fit::FDDTimeA, fit::FDDTimeC, fit::FDDTriggerMask,
+                  fit::FDDChAmpl, fit::FDDTotAmplA, fit::FDDTotAmplC);
 
 using FITExtra = FITExtras::iterator;
 
