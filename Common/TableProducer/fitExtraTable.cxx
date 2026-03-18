@@ -268,13 +268,16 @@ struct fitExtraTable {
             timestamp,
             sel8, hasFT0, hasFV0, hasFDD,
             bcId, posX, posY, posZ, flags, numContrib, collisionTime, collisionTimeRes,
-            ft0BCId, ft0AmplitudeA, ft0ChannelA, ft0AmplitudeC, ft0ChannelC,
+            // ft0BCId,
+            ft0AmplitudeA, ft0ChannelA, ft0AmplitudeC, ft0ChannelC,
             ft0TimeA, ft0TimeC, ft0TriggerMask, ft0PosZ, ft0CollTime, ft0SumAmpA, ft0SumAmpC,
             t0ACorrected, t0CCorrected, t0AC, t0resolution,
             ft0ChAmpl, ft0TotAmplA, ft0TotAmplC,
-            fv0BCId, fv0Amplitude, fv0Channel, fv0Time, fv0TriggerMask,
+            // fv0BCId,
+            fv0Amplitude, fv0Channel, fv0Time, fv0TriggerMask,
             fv0ChAmpl, fv0TotAmpl,
-            fddBCId, fddChargeA, fddChargeC, fddTimeA, fddTimeC, fddTriggerMask,
+            // fddBCId,
+            fddChargeA, fddChargeC, fddTimeA, fddTimeC, fddTriggerMask,
             fddChAmpl, fddTotAmplA, fddTotAmplC);
     }
   }
