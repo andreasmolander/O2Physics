@@ -30,14 +30,14 @@ namespace fit
 
 // Constants
 // TODO: add reference channels?
-static constexpr int nChFT0 = 212;                          ///< Number of FT0 channels
-static constexpr int nChFT0A = 96;                          ///< Number of FT0A channels
-static constexpr int nChFT0C = 112;                         ///< Number of FT0C channels
-static constexpr int nChFT0LCS = 4;                         ///< Number of FT0 LCS channels
-static constexpr int nChFV0 = o2::fv0::nFv0ChannelsPlusRef; ///< Number of FV0 channels
-static constexpr int nChFV0LCS = 1;                         ///< Number of FV0 LCS channels
-static constexpr int nChFDD = o2::fdd::Nchannels;           ///< Number of FDD channels, TODO: add FDD LCS
-static constexpr int nADC = 4096;                           ///< Number of ADC channels
+static constexpr int nChFT0 = 212;                                     ///< Number of FT0 channels
+static constexpr int nChFT0A = 96;                                     ///< Number of FT0A channels
+static constexpr int nChFT0C = 112;                                    ///< Number of FT0C channels
+static constexpr int nChFT0LCS = 4;                                    ///< Number of FT0 LCS channels
+static constexpr int nChFV0 = o2::fv0::Constants::nFv0ChannelsPlusRef; ///< Number of FV0 channels
+static constexpr int nChFV0LCS = 1;                                    ///< Number of FV0 LCS channels
+static constexpr int nChFDD = o2::fdd::Nchannels;                      ///< Number of FDD channels, TODO: add FDD LCS
+static constexpr int nADC = 4096;                                      ///< Number of ADC channels
 
 // BCs
 DECLARE_SOA_COLUMN(RunNumber, runNumber, int);
