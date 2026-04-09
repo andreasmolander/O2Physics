@@ -9,11 +9,18 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 
+/// \file   FITExtra.h
+/// \author Andreas Molander andreas.molander@cern.ch
+/// \brief  FIT extra data model
+
 #ifndef COMMON_DATAMODEL_FITEXTRA_H_
 #define COMMON_DATAMODEL_FITEXTRA_H_
 
 #include "Framework/ASoA.h"
 #include "Framework/AnalysisDataModel.h"
+#include "FDDBase/Constants.h"
+#include "FV0Base/Constants.h"
+
 #include <cstdint>
 
 namespace o2::aod
@@ -23,14 +30,14 @@ namespace fit
 
 // Constants
 // TODO: add reference channels?
-static constexpr int nChFT0 = 208; ///< Number of FT0 channels
-static constexpr int nChFT0A = 96; ///< Number of FT0A channels (-> number of FT0C channels = nChFT0 - nChFT0A)
-static constexpr int nChFV0 = 48;  ///< Number of FV0 channels
-static constexpr int nChFDD = 16;  ///< Number of FDD channels
-static constexpr int nADC = 4096;  ///< Number of ADC channels
-
-// Quantities copied straight from AOD
-// TODO: do we need them here?
+static constexpr int nChFT0 = 212;                          ///< Number of FT0 channels
+static constexpr int nChFT0A = 96;                          ///< Number of FT0A channels
+static constexpr int nChFT0C = 112;                         ///< Number of FT0C channels
+static constexpr int nChFT0LCS = 4;                         ///< Number of FT0 LCS channels
+static constexpr int nChFV0 = o2::fv0::nFv0ChannelsPlusRef; ///< Number of FV0 channels
+static constexpr int nChFV0LCS = 1;                         ///< Number of FV0 LCS channels
+static constexpr int nChFDD = o2::fdd::Nchannels;           ///< Number of FDD channels, TODO: add FDD LCS
+static constexpr int nADC = 4096;                           ///< Number of ADC channels
 
 // BCs
 DECLARE_SOA_COLUMN(RunNumber, runNumber, int);
