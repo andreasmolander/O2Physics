@@ -14,15 +14,15 @@
 ///
 /// \author Andreas Molander andreas.molander@cern.ch
 
-
 #include "Common/DataModel/EventSelection.h"
 #include "Common/DataModel/FT0Corrected.h"
 #include "Common/DataModel/Multiplicity.h"
 
+#include "FV0Base/Constants.h"
 #include "Framework/AnalysisDataModel.h"
 #include "Framework/AnalysisTask.h"
 #include "Framework/runDataProcessing.h"
-#include "FV0Base/Constants.h"
+
 #include "FDDBase/Constants.h"
 
 #include <cstdint>
@@ -103,9 +103,9 @@ DECLARE_SOA_COLUMN(T0AC, t0AC, float);
 DECLARE_SOA_COLUMN(T0Resolution, t0resolution, float);
 
 // FT0 derived quantities
-DECLARE_SOA_COLUMN(FT0ChAmpl, ft0ChAmpl, std::vector<float>);  ///< FT0 channel amplitudes, vector idx = ch ID
-DECLARE_SOA_COLUMN(FT0TotAmplA, ft0TotAmplA, float);           ///< FT0-A total amplitude computed from channel amplitudes (for cross check)
-DECLARE_SOA_COLUMN(FT0TotAmplC, ft0TotAmplC, float);           ///< FT0-C total amplitude computed from channel amplitudes (for cross check)
+DECLARE_SOA_COLUMN(FT0ChAmpl, ft0ChAmpl, std::vector<float>); ///< FT0 channel amplitudes, vector idx = ch ID
+DECLARE_SOA_COLUMN(FT0TotAmplA, ft0TotAmplA, float);          ///< FT0-A total amplitude computed from channel amplitudes (for cross check)
+DECLARE_SOA_COLUMN(FT0TotAmplC, ft0TotAmplC, float);          ///< FT0-C total amplitude computed from channel amplitudes (for cross check)
 
 // FV0As
 DECLARE_SOA_COLUMN(FV0BCId, fv0BCId, int32_t);
@@ -159,7 +159,6 @@ using FITAll = FITsAll::iterator;
 
 } // namespace o2::aod
 
-
 struct fitAll {
   // Producer
   Produces<o2::aod::FITAll> table;
@@ -167,10 +166,11 @@ struct fitAll {
   void init(InitContext const&)
   {
   }
-  
+
   void process(soa::Join<aod::Collisions, aod::EvSels, aod::MultsRun3, aod::FT0sCorrected> const& collisions,
                aod::BCsWithTimestamps const&,
-               aod::FT0s const&, aod::FV0As const&, aod::FDDs const&, aod::Zdcs const&) {
+               aod::FT0s const&, aod::FV0As const&, aod::FDDs const&, aod::Zdcs const&)
+  {
     table.reserve(collisions.size());
 
     // BC
@@ -269,13 +269,13 @@ struct fitAll {
 
     for (const auto& collision : collisions) {
       auto bc = collision.bc_as<aod::BCsWithTimestamps>();
-      
+
       // BC
       runNumber = bc.runNumber();
       globalBC = bc.globalBC();
       ctpTriggerMask = bc.triggerMask();
       ctpInputMask = bc.inputMask();
-      
+
       // Timestamp
       timestamp = bc.timestamp();
 
@@ -402,7 +402,7 @@ struct fitAll {
         fv0BCId = fv0.bcId();
         fv0Time = fv0.time();
         fv0TriggerMask = fv0.triggerMask();
-        
+
         for (size_t i = 0; i < fv0.amplitude().size(); i++) {
           // FV0A
           fv0Amplitude.push_back(fv0.amplitude()[i]);
