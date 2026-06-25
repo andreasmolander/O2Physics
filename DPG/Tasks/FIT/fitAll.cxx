@@ -82,6 +82,10 @@ DECLARE_SOA_COLUMN(EvSelCtpTriggerMask, evSelCtpTriggerMask, uint64_t);
 DECLARE_SOA_COLUMN(EvSelCtpInputMask, evSelCtpInputMask, uint64_t);
 DECLARE_SOA_COLUMN(EvSelTimestamp, evSelTimestamp, uint64_t);
 
+// MC
+DECLARE_SOA_COLUMN(McGlobalBc, mcGlobalBc, uint64_t);
+DECLARE_SOA_COLUMN(McAmbiguousColl, mcAmbiguousColl, bool);
+
 // Mults
 DECLARE_SOA_COLUMN(MultFt0A, multFt0A, float);
 DECLARE_SOA_COLUMN(MultFt0C, multFt0C, float);
@@ -157,6 +161,7 @@ DECLARE_SOA_TABLE(FITsAll, "AOD", "FITALL", ///< Standalone derived data used fo
                   fit::CollRunNumber, fit::CollGlobalBc, fit::CollCtpTriggerMask, fit::CollCtpInputMask, fit::CollTimestamp,
                   fit::TriggerAlias, fit::SelectionFlags, fit::RctFlags, fit::Sel8, fit::HasFoundBc, fit::HasFoundFt0, fit::HasFoundFv0, fit::HasFoundFdd, fit::HasFoundZdc,
                   fit::EvSelRunNumber, fit::EvSelGlobalBc, fit::EvSelCtpTriggerMask, fit::EvSelCtpInputMask, fit::EvSelTimestamp,
+                  fit::McGlobalBc, fit::McAmbiguousColl,
                   fit::MultFt0A, fit::MultFt0C, fit::MultFv0A, fit::MultFddA, fit::MultFddC, fit::MultZnA, fit::MultZnC, fit::MultZem1, fit::MultZem2, fit::MultZpA, fit::MultZpC,
                   fit::Ft0GlobalBc, fit::Ft0AmplitudeA, fit::Ft0ChannelA, fit::Ft0AmplitudeC, fit::Ft0ChannelC,
                   fit::Ft0TimeA, fit::Ft0TimeC, fit::Ft0TriggerMask, fit::Ft0PosZ, fit::Ft0CollTime, fit::Ft0SumAmpA, fit::Ft0SumAmpC,
@@ -225,9 +230,8 @@ struct FitAll {
     }
   }
 
-  void process(soa::Join<aod::Collisions, aod::EvSels, aod::MultsRun3, aod::FT0sCorrected> const& collisions,
-               aod::BCsWithTimestamps const&,
-               aod::FT0s const&, aod::FV0As const&, aod::FDDs const&, aod::Zdcs const&)
+  template <typename TCollision>
+  void fillTable(TCollision const& collisions)
   {
     table.reserve(collisions.size());
 
@@ -246,7 +250,7 @@ struct FitAll {
       float collisionTimeRes = collision.collisionTimeRes();
 
       // Collision BC with timestamp
-      auto collBc = collision.bc_as<aod::BCsWithTimestamps>();
+      auto collBc = collision.template bc_as<aod::BCsWithTimestamps>();
       int collRunNumber = collBc.runNumber();
       uint64_t collGlobalBc = collBc.globalBC();
       uint64_t collCtpTriggerMask = collBc.triggerMask();
@@ -271,7 +275,7 @@ struct FitAll {
       uint64_t evSelCtpInputMask = 0;
       uint64_t evSelTimestamp = 0;
       if (hasFoundBc) {
-        auto evSelBc = collision.foundBC_as<aod::BCsWithTimestamps>();
+        auto evSelBc = collision.template foundBC_as<aod::BCsWithTimestamps>();
         evSelRunNumber = evSelBc.runNumber();
         evSelGlobalBc = evSelBc.globalBC();
         evSelCtpTriggerMask = evSelBc.triggerMask();
@@ -287,6 +291,14 @@ struct FitAll {
           }
         }
       }
+
+      // MC
+      uint64_t mcGlobalBc = 0;
+      if constexpr (requires { collision.mcCollision(); }) {
+        mcGlobalBc = collision.mcCollision().template bc_as<aod::BCsWithTimestamps>().globalBC();
+      }
+      
+      bool mcAmbiguousColl = false;
 
       // Multiplicities
       float multFT0A = collision.multFT0A();
@@ -327,9 +339,8 @@ struct FitAll {
       float ft0TotAmplC = 0;
 
       if (hasFoundFt0) {
-        // FT0
         auto ft0 = collision.foundFT0();
-        auto ft0bc = ft0.bc_as<aod::BCsWithTimestamps>();
+        auto ft0bc = ft0.template bc_as<aod::BCsWithTimestamps>();
         ft0GlobalBc = ft0bc.globalBC();
         ft0TimeA = ft0.timeA();
         ft0TimeC = ft0.timeC();
@@ -387,9 +398,8 @@ struct FitAll {
       float fv0TotAmpl = 0;
 
       if (hasFoundFv0) {
-        // FV0A
         auto fv0 = collision.foundFV0();
-        auto fv0bc = fv0.bc_as<aod::BCsWithTimestamps>();
+        auto fv0bc = fv0.template bc_as<aod::BCsWithTimestamps>();
         fv0GlobalBc = fv0bc.globalBC();
         fv0Time = fv0.time();
         fv0TriggerMask = fv0.triggerMask();
@@ -430,9 +440,8 @@ struct FitAll {
       float fddTotAmplC = 0;
 
       if (hasFoundFdd) {
-        // FDD
         auto fdd = collision.foundFDD();
-        auto fddbc = fdd.bc_as<aod::BCsWithTimestamps>();
+        auto fddbc = fdd.template bc_as<aod::BCsWithTimestamps>();
         fddGlobalBc = fddbc.globalBC();
         fddTimeA = fdd.timeA();
         fddTimeC = fdd.timeC();
@@ -469,7 +478,6 @@ struct FitAll {
       float timeZEM2 = -std::numeric_limits<float>::infinity();
 
       if (hasFoundZdc) {
-        // ZDC
         auto zdc = collision.foundZDC();
         energyCommonZNA = zdc.energyCommonZNA();
         energyCommonZNC = zdc.energyCommonZNC();
@@ -481,6 +489,7 @@ struct FitAll {
             collRunNumber, collGlobalBc, collCtpTriggerMask, collCtpInputMask, collTimestamp,
             triggerAlias, selectionFlags, rctFlags, sel8, hasFoundBc, hasFoundFt0, hasFoundFv0, hasFoundFdd, hasFoundZdc,
             evSelRunNumber, evSelGlobalBc, evSelCtpTriggerMask, evSelCtpInputMask, evSelTimestamp,
+            mcGlobalBc, mcAmbiguousColl,
             multFT0A, multFT0C, multFV0A, multFDDA, multFDDC, multZNA, multZNC, multZEM1, multZEM2, multZPA, multZPC,
             ft0GlobalBc, ft0AmplitudeA, ft0ChannelA, ft0AmplitudeC, ft0ChannelC,
             ft0TimeA, ft0TimeC, ft0TriggerMask, ft0PosZ, ft0CollTime, ft0SumAmpA, ft0SumAmpC,
@@ -493,6 +502,20 @@ struct FitAll {
             energyCommonZNA, energyCommonZNC, timeZEM1, timeZEM2);
     }
   }
+
+  void  processData(soa::Join<aod::Collisions, aod::EvSels, aod::MultsRun3, aod::FT0sCorrected> const& collisions,
+                    aod::BCsWithTimestamps const&, aod::FT0s const&, aod::FV0As const&, aod::FDDs const&, aod::Zdcs const&)
+  {
+    fillTable(collisions);
+  }
+  PROCESS_SWITCH(FitAll, processData, "Process data", true);
+
+  void  processMc(soa::Join<aod::Collisions, aod::EvSels, aod::MultsRun3, aod::FT0sCorrected, aod::McCollisionLabels> const& collisions,
+                    aod::BCsWithTimestamps const&, aod::FT0s const&, aod::FV0As const&, aod::FDDs const&, aod::Zdcs const&, aod::McCollisions const& mcCols)
+  {
+    fillTable(collisions);
+  }
+  PROCESS_SWITCH(FitAll, processMc, "Process Mc", false);
 };
 
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
